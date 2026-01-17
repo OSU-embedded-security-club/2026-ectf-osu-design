@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "preLaunchTask": "${defaultBuildTask}",
+      "type": "probe-rs-debug",
+      "request": "launch",
+      "name": "Debug",
+      "flashingConfig": {
+        "flashingEnabled": false,
+        "restoreUnwrittenBytes": true,
+        "haltAfterReset": true
+      },
+      "wireProtocol": "Swd",
+      //!MODIFY
+      "chip": "MSPM0L2228",
+      "coreConfigs": [
+        {
+          //!MODIFY
+          "programBinary": "gdb_challenge_26.elf",
+        }
+      ],
+    }
+  ]
+}

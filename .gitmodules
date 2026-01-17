@@ -1,0 +1,6 @@
+[submodule "mspm0-sdk"]
+	path = mspm0-sdk
+	url = https://github.com/TexasInstruments/mspm0-sdk.git
+[submodule "docs/doxygen-awesome-css"]
+	path = docs/doxygen-awesome-css
+	url = https://github.com/jothepro/doxygen-awesome-css.git
