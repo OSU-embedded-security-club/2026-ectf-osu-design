@@ -2,22 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "preLaunchTask": "${defaultBuildTask}",
+      // "preLaunchTask": "${defaultBuildTask}",
       "type": "probe-rs-debug",
-      "request": "launch",
+      "request": "attach",
       "name": "Debug",
-      "flashingConfig": {
-        "flashingEnabled": false,
-        "restoreUnwrittenBytes": true,
-        "haltAfterReset": true
-      },
-      "wireProtocol": "Swd",
-      //!MODIFY
+      "server": "172.16.2.5:50000",
       "chip": "MSPM0L2228",
+      "wireProtocol": "Swd",
       "coreConfigs": [
         {
-          //!MODIFY
-          "programBinary": "gdb_challenge_26.elf",
+          "programBinary": "build/hsm.elf",
+          "svdFile": "MSPM0L222X.svd"
         }
       ],
     }

@@ -19,7 +19,7 @@ set(DEBUG_OPTION        -gdwarf-3)
 
 
 set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
-set(TI_LLVM "${CMAKE_SOURCE_DIR}/ti-llvm")
+set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
 
 set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
 
@@ -52,7 +52,7 @@ add_link_options(
     LINKER:--reread_libs
     LINKER:--warn_sections
     LINKER:--rom_model
-    ${CMAKE_SOURCE_DIR}/firmware.ld
+    ${CMAKE_SOURCE_DIR}/firmware.cmd
 )
 
 link_directories(
@@ -72,6 +72,12 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c)
 add_executable(
     hsm
     ${SRC_FILES}
+)
+
+set_target_properties(hsm PROPERTIES SUFFIX .elf)
+
+add_custom_command(TARGET hsm POST_BUILD
+    COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
 )
 
 ##############
