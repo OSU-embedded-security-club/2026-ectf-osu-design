@@ -3,6 +3,9 @@ name: Build Documentation
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - docs
+      - src
     
 jobs:
   build:
