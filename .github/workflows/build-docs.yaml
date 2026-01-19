@@ -1,0 +1,21 @@
+name: Build Documentation
+
+on:
+  push:
+    branches: [ "main" ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build and run dev container task
+      uses: devcontainers/ci@v0.3
+      with:
+        # Change this to be your CI task/script
+        runCmd: |
+          cmake -B build
+          cd build
+          make docs
+          
