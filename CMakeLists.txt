@@ -80,6 +80,13 @@ add_custom_command(TARGET hsm POST_BUILD
     COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
 )
 
+###########
+# Linting #
+###########
+
+add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy ${SRC_FILES})
+add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy --warnings-as-errors=* ${SRC_FILES})
+
 ##############
 # Build Docs #
 ##############
@@ -104,7 +111,7 @@ if(Doxygen_FOUND)
     set(DOXYGEN_EXTRACT_ALL YES)
 
     doxygen_add_docs(docs # Target
-        ./src
-        ./docs
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/docs
     )
 endif()

@@ -1,15 +1,14 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: Build Documentation
+name: Lint Codebase
 
 on:
+  pull-request:
+    branches: [ "main" ]
   push:
     branches: [ "main" ]
-    paths:
-      - docs
-      - src
-    
+
 jobs:
-  build:
+  clang-tidy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -20,5 +19,4 @@ jobs:
         runCmd: |
           cmake -B build
           cd build
-          make docs
-          
+          make lint-ci
