@@ -64,6 +64,22 @@ link_libraries(
     ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
 )
 
+#################
+# Build mbedtls #
+#################
+
+# Disable testing and programs
+set(ENABLE_TESTING off CACHE BOOL "Enable mbedtls testing")
+set(ENABLE_PROGRAMS off CACHE BOOL "Enable mbedtls programs")
+
+# Set config files
+set(MBEDTLS_CONFIG_FILE ${CMAKE_SOURCE_DIR}/mbedtls-config/mbedtls_config.h
+CACHE STRING "mbedtls config file")
+set(TF_PSA_CRYPTO_CONFIG_FILE ${CMAKE_SOURCE_DIR}/mbedtls-config/crypto_config.h
+CACHE STRING "mbedtls crypto config file")
+
+add_subdirectory(mbedtls)
+
 #####################
 # Create Executable #
 #####################
@@ -73,6 +89,8 @@ add_executable(
     hsm
     ${SRC_FILES}
 )
+
+target_link_libraries(hsm PRIVATE tfpsacrypto)
 
 set_target_properties(hsm PROPERTIES SUFFIX .elf)
 
