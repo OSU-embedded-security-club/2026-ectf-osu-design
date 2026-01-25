@@ -1,27 +1,46 @@
 cmake_minimum_required(VERSION 3.29)
 
-set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(PROCESSOR_OPTIONS
-    -D__MSPM0L2228__
-    -march=thumbv6m
-    -mcpu=cortex-m0plus
-    -mfloat-abi=soft
-    -mlittle-endian
-    -mthumb
-)
+message(STATUS "BUILD_MODE = '${BUILD_MODE}'")
+
+
 
 set(OPTIMIZATION_OPTION -O0)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
 
-set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
-set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
 
-set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  set(CMAKE_SYSTEM_NAME Generic)
+  set(PROCESSOR_OPTIONS
+      -D__MSPM0L2228__
+      -march=thumbv6m
+      -mcpu=cortex-m0plus
+      -mfloat-abi=soft
+      -mlittle-endian
+      -mthumb
+  )
+
+  set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
+  message(STATUS "ROOT = '${SDK_ROOT}'")
+  set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
+
+  set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
+else()
+
+  add_compile_definitions(SIMU)
+  add_compile_options(
+    -O0
+    -g
+    -Wall
+    -Wextra
+  )
+
+
+endif()
 
 project(hsm LANGUAGES C)
 
@@ -29,40 +48,44 @@ project(hsm LANGUAGES C)
 # Compiler Configuration #
 ##########################
 
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
 # Compiler options
-add_compile_options(
-    ${PROCESSOR_OPTIONS}
-    ${OPTIMIZATION_OPTION}
-    ${LTO_OPTION}
-    ${DEBUG_OPTION}
-)
+  add_compile_options(
+      ${PROCESSOR_OPTIONS}
+      ${OPTIMIZATION_OPTION}
+      ${LTO_OPTION}
+      ${DEBUG_OPTION}
+  )
 
 # Include SDK Headers
-include_directories(
-    ${SDK_ROOT}/source
-    ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
-)
+  include_directories(
+      ${SDK_ROOT}/source
+      ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
+  )
 
+endif()
 ########################
 # Linker Configuration #
 ########################
 
-add_link_options(
-    ${LTO_OPTION}            # Required when compiling AND linking
-    LINKER:--reread_libs
-    LINKER:--warn_sections
-    LINKER:--rom_model
-    ${CMAKE_SOURCE_DIR}/firmware.cmd
-)
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_link_options(
+      ${LTO_OPTION}            # Required when compiling AND linking
+      LINKER:--reread_libs
+      LINKER:--warn_sections
+      LINKER:--rom_model
+      ${CMAKE_SOURCE_DIR}/firmware.cmd
+  )
 
-link_directories(
-    ${TI_LLVM}/lib
-    ${SDK_ROOT}/source
-)
+  link_directories(
+      ${TI_LLVM}/lib
+      ${SDK_ROOT}/source
+  )
 
-link_libraries(
-    ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
-)
+  link_libraries(
+      ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
+  )
+endif()
 
 #################
 # Build mbedtls #
@@ -83,27 +106,45 @@ add_subdirectory(mbedtls)
 #####################
 # Create Executable #
 #####################
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c)
 
-add_executable(
-    hsm
-    ${SRC_FILES}
+file(GLOB_RECURSE IMPL_SRC CONFIGURE_DEPENDS
+  src/impl/*.c
 )
+
+add_executable(hsm)
+target_sources(hsm PRIVATE ${IMPL_SRC})
+
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  file(GLOB_RECURSE MSPN_SRC CONFIGURE_DEPENDS
+    src/mspn/*.c
+  )
+  target_sources(hsm PRIVATE ${MSPN_SRC})
+else()
+  file(GLOB_RECURSE SIMU_SRC CONFIGURE_DEPENDS
+    src/simu/*.c
+  )
+  target_sources(hsm PRIVATE ${SIMU_SRC})
+endif()
 
 target_link_libraries(hsm PRIVATE tfpsacrypto)
 
 set_target_properties(hsm PROPERTIES SUFFIX .elf)
 
-add_custom_command(TARGET hsm POST_BUILD
-    COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
-)
+
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_custom_command(TARGET hsm POST_BUILD
+      COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
+  )
+endif()
 
 ###########
 # Linting #
 ###########
 
-add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy ${SRC_FILES})
-add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy --warnings-as-errors=* ${SRC_FILES})
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy ${SRC_FILES})
+  add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy --warnings-as-errors=* ${SRC_FILES})
+endif()
 
 ##############
 # Build Docs #
