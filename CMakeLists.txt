@@ -37,12 +37,17 @@ else()
     -g
     -Wall
     -Wextra
+    # Adds IO stuff for uart
+    -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   )
 
 
 endif()
 
 project(hsm LANGUAGES C)
+
+
+include_directories("shared_inc")
 
 ##########################
 # Compiler Configuration #
