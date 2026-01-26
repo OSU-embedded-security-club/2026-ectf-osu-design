@@ -1,7 +1,0 @@
-CompileFlags:
-    BuiltinHeaders: QueryDriver
-    Add: [--target=thumb]
-    CompilationDatabase: build
-
-Documentation:
-    CommentFormat: Doxygen

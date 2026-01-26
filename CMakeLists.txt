@@ -14,6 +14,7 @@ set(DEBUG_OPTION        -gdwarf-3)
 
 
 if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_compile_definitions(MSPN)
   set(CMAKE_SYSTEM_NAME Generic)
   set(PROCESSOR_OPTIONS
       -D__MSPM0L2228__
@@ -41,6 +42,8 @@ else()
     -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   )
 
+
+  set(CMAKE_C_COMPILER gcc)
 
 endif()
 

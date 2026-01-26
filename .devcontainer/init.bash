@@ -2,6 +2,10 @@
 
 sudo dnf install -y wget curl git cmake clangd uv doxygen python3-pip
 
+# Install build deps
+git clone https://github.com/Mbed-TLS/mbedtls.git /tmp/mbedtls --depth=1
+pip install -r /tmp/mbedtls/scripts/basic.requirements.txt
+
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
 
 wget -O ti_llvm_installer.bin https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-ayxs93eZNN/4.0.2.LTS/ti_cgt_armllvm_4.0.2.LTS_linux-x64_installer.bin

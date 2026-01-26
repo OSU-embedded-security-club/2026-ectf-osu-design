@@ -3,7 +3,7 @@
 #include "impl.h"
 #include "impl_state.h"
 
-#include <endian.h>
+// #include <endian.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@ static inline bool hostop_is_valid(HostOp op) {
 }
 
 void write_packet_header(HostOp op, uint16_t length) {
-  length = htole16(length);
+  // length = htole16(length);
   uint8_t* lptr = (uint8_t*) &length;
 
   uint8_t data[] = {'%', (uint8_t) op, lptr[0], lptr[1]};
@@ -48,7 +48,8 @@ static void _read_packet_header(HostOp* read_op, uint16_t* read_length, uint8_t*
   }
   
   *read_op = (HostOp) src[1];
-  *read_length = le16toh( *(uint16_t*)&src[2] );
+  // *read_length = le16toh( *(uint16_t*)&src[2] );
+  *read_length = *(uint16_t*)&src[2] ;
 
   if (!hostop_is_valid(*read_op)) {
     print_debug("Not a valid host opcode");
