@@ -53,6 +53,8 @@ static inline UartSimulator* uart_from(UartInterface i) {
 size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_size) {
   ssize_t size = US_read(uart_from(interface), buffer, max_size);
   if (size == -1) {
+    if (errno == EAGAIN) return 0;
+
     fprintf(stderr, "SIMU: Failed to read from UART %s; %s\n", 
             interface == UART_control ? "control" : "transfer", strerror(errno));
     exit(EXIT_FAILURE);
@@ -81,7 +83,7 @@ int US_init_new(UartSimulator *this) {
   struct termios term;
 
   // Create the device
-  int fd = posix_openpt(O_RDWR);
+  int fd = posix_openpt(O_RDWR | O_NONBLOCK);
   if (-1 == fd)
     return 1;
   grantpt(fd);

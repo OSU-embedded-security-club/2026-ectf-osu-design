@@ -1,7 +1,6 @@
 #include "hal.h"
 #include "uart_utils.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <unistd.h>
 
 
@@ -15,7 +14,7 @@ int safe_uart_read(UartInterface interface, uint8_t* buffer, size_t exact_size) 
     size_t bytes_got = HAL_read_uart(interface, &buffer[total_read], size_needed);
 
     if (bytes_got > 0) {
-      total_read += 1;
+      total_read += bytes_got;
       attempts = 0;
     } else {
       
@@ -23,7 +22,7 @@ int safe_uart_read(UartInterface interface, uint8_t* buffer, size_t exact_size) 
       if (attempts > MAX_ATTEMPTS) {
         return 1;
       }
-      usleep(100);
+      usleep(50000);
     }
   }
   return 0;

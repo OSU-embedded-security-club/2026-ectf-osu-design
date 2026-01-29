@@ -85,6 +85,7 @@ int main(int argc, char *argv[]){
       return EXIT_FAILURE;
     }
 
+    
     if (fds[0].revents & POLLIN)  IMPL_on_uart(UART_transfer);
     if (fds[1].revents & POLLIN)  IMPL_on_uart(UART_control);
 

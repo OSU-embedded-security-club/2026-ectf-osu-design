@@ -11,7 +11,7 @@ set(OPTIMIZATION_OPTION -O0)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
-
+add_compile_definitions(DEBUG)
 
 if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
   add_compile_definitions(MSPN)

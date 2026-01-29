@@ -17,6 +17,7 @@ void IMPL_write_error(char* message);
 
 #ifdef SIMU
 #include <stdio.h>
+#include <stdlib.h>
 #define _to_str(X) #X
 #define _double_debug_print(FUNC, str) printf("SIMU " _to_str(FUNC) ": %s\n", str)
 #else
@@ -29,6 +30,7 @@ void IMPL_write_error(char* message);
   if (-1 != asprintf(&_buffer, __VA_ARGS__)){ \
     _double_debug_print(FUNC, _buffer); \
     FUNC(_buffer); \
+    free(_buffer); \
   } \
 } while(0);
 

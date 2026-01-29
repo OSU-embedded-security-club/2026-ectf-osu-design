@@ -66,7 +66,7 @@ void write_ack(){
 
 
 void read_packet_header(HostOp *read_op, uint16_t *read_length) {
-  if (0 != safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
+  if (safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
     print_debug("Host protocol error: Incorrect sized header");
     HAL_on_error();
   }
@@ -77,7 +77,7 @@ void read_packet_header(HostOp *read_op, uint16_t *read_length) {
 
 
 static void read_ack() {
-  if (0 != safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
+  if (safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
     print_debug("Host protocol error: Incorrect sized header (on expected ack)");
     HAL_on_error();
   }
@@ -142,7 +142,7 @@ void packet_send(HostOp op, uint8_t* data, size_t len) {
 
 
 size_t read_packet_segment(size_t seg_size) {
-  if (0 == safe_uart_read(UART_control, temp_buffer, seg_size)) {
+  if (safe_uart_read(UART_control, temp_buffer, seg_size)) {
     print_error("Host Protocol error: Timeout in uart segment read");
     HAL_on_error();
   }
