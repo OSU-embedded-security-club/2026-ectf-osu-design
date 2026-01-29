@@ -20,9 +20,14 @@ void HAL_led_off();
 void HAL_led_toggle();
 
 
+void HAL_usleep(uint32_t micro);
+
+
 // Use this for your buffer size
 #define MAX_READ_SIZE 512 
 
-// Note: Only reads avalible data, might be truncated. 
-size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_count);
+
 void HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len);
+
+// Note: Only reads avalible data, might be truncated. See uart_utils.c:safe_uart_read for what you should actually use
+size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_count);

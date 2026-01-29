@@ -44,11 +44,19 @@ void HAL_led_toggle(){
 
 
 
+void HAL_usleep(uint32_t micro) {
+  usleep(micro);
+}
+
+
+
 
 
 static inline UartSimulator* uart_from(UartInterface i) {
   return i == UART_control ? &control_sim : &transfer_sim;
 }
+
+
 
 size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_size) {
   ssize_t size = US_read(uart_from(interface), buffer, max_size);

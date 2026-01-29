@@ -17,13 +17,13 @@ void IMPL_write_error(char* message);
 
 #ifdef SIMU
 #include <stdio.h>
-#include <stdlib.h>
 #define _to_str(X) #X
 #define _double_debug_print(FUNC, str) printf("SIMU " _to_str(FUNC) ": %s\n", str)
 #else
 #define _double_debug_print(FUNC, str) {}
 #endif
 
+#include <stdlib.h>
 
 #define _WRITE_TO(FUNC, ...) do{                            \
   char* _buffer;                                            \

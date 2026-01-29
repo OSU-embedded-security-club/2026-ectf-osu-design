@@ -1,21 +1,14 @@
 #include "impl.h"
 #include "hal.h"
-#include "impl_state.h"
 #include "host_messaging.h"
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
-
-// Make sure we do not get iterupted when we don't want it
-atomic_bool do_uart_interupts = true;
 
 void IMPL_on_uart(UartInterface interface) {
-  if (!atomic_load(&do_uart_interupts)) return; 
 
   if (interface != UART_control) return;
-  START_UART_SECTION
   HostOp hp;
   uint16_t len;
 
@@ -33,11 +26,8 @@ void IMPL_on_uart(UartInterface interface) {
     't', 'e', 's', 't',' ', 'f', 'i', 'l', 'e', '!'
   };
   packet_send(hp, files_d, sizeof(files_d));
-
-
-
-  END_UART_SECTION
-  
 }
 
-
+// See host_messaging.c for:
+// void IMPL_write_debug(char* message)
+// void IMPL_write_error(char* message)

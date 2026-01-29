@@ -1,7 +1,6 @@
 #include "host_messaging.h"
 #include "hal.h"
 #include "impl.h"
-#include "impl_state.h"
 #include "uart_utils.h"
 
 // #include <endian.h>
@@ -42,7 +41,7 @@ void write_packet_header(HostOp op, uint16_t length) {
   HAL_write_uart(UART_control, data, sizeof(data));
 }
 
-static void _read_packet_header(HostOp* read_op, uint16_t* read_length, uint8_t* src){
+static void parse_packet_header(HostOp* read_op, uint16_t* read_length, uint8_t* src){
   if ('%' != src[0]) {
     print_debug("Not a valid host message, expected '%%', got '%x'", src[0]);
     HAL_on_error();
@@ -60,7 +59,7 @@ static void _read_packet_header(HostOp* read_op, uint16_t* read_length, uint8_t*
 
 
 
-void write_ack(){
+static void write_ack(){
   write_packet_header(OP_ACK, 0);
 }
 
@@ -70,7 +69,7 @@ void read_packet_header(HostOp *read_op, uint16_t *read_length) {
     print_debug("Host protocol error: Incorrect sized header");
     HAL_on_error();
   }
-  _read_packet_header(read_op, read_length, temp_buffer);
+  parse_packet_header(read_op, read_length, temp_buffer);
   write_ack();
 }
 
@@ -86,7 +85,7 @@ static void read_ack() {
   HostOp op;
   uint16_t len;
 
-  _read_packet_header(&op, &len, temp_buffer);
+  parse_packet_header(&op, &len, temp_buffer);
   if (op != OP_ACK) {
     print_debug("Host protocol error: Expected ack, got %x", op);
     HAL_on_error();
@@ -110,7 +109,8 @@ static void read_ack() {
 //  Important messaging functions
 //================================
 
-void write_response_body(uint8_t* data, size_t len) {
+void write_response_body(uint8_t* data, size_t _len) {
+  ptrdiff_t len = (ptrdiff_t) _len;
   read_ack();
   while (len > 0) {
     size_t amount = len > 256 ? 256 : len;
@@ -119,50 +119,42 @@ void write_response_body(uint8_t* data, size_t len) {
     read_ack();
 
     data += amount;
-    len -= amount;
+    len -= (ptrdiff_t) amount;
   }
 
 
 }
 
 void packet_send(HostOp op, uint8_t* data, size_t len) {
-  if (!data && len) {
+  if (0 == data && len) {
     print_debug("Violation: IMPL_packet_send must have len=0 if data=null");
     HAL_on_error();
   }
 
-  START_UART_SECTION
+   
 
   write_packet_header(op, len);
   write_response_body(data, len);
-
-  END_UART_SECTION
 }
 
 
-
-size_t read_packet_segment(size_t seg_size) {
+void read_packet_segment(size_t seg_size) {
   if (safe_uart_read(UART_control, temp_buffer, seg_size)) {
     print_error("Host Protocol error: Timeout in uart segment read");
     HAL_on_error();
   }
 
   write_ack();
-  return seg_size;
 }
-
 
 
 // Simplist since no ACKs are needed
 void IMPL_write_debug(char* message) {
   size_t len = strlen(message);
-
-  START_UART_SECTION
+   
 
   write_packet_header(OP_DEBUG, len);
   HAL_write_uart(UART_control, (uint8_t*) message, len);
-
-  END_UART_SECTION
 }
 
 void IMPL_write_error(char* message) {

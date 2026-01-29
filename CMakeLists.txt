@@ -6,12 +6,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 message(STATUS "BUILD_MODE = '${BUILD_MODE}'")
 
 
+# TODO: Remove this for during attack/handoff
+add_compile_definitions(DEBUG)
 
 set(OPTIMIZATION_OPTION -O0)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
-add_compile_definitions(DEBUG)
 
 if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
   add_compile_definitions(MSPN)
