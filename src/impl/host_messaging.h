@@ -30,13 +30,16 @@ void read_packet_header(HostOp* read_op, uint16_t* read_length);
 
 void packet_send(HostOp op, uint8_t* data, size_t len);
 
-size_t read_packet_segment();
+size_t read_packet_segment(size_t size);
 
 
 static inline bool _handle_packet_segment(size_t len, uint8_t** buff, size_t* curr_len, size_t* seg_len) {
   if (len <= *curr_len) return false;
 
-  *seg_len = read_packet_segment();
+  *seg_len = len - *curr_len;
+  if (*seg_len > 256) *seg_len = 256;
+
+  read_packet_segment(*seg_len);
 
   *curr_len += *seg_len;
   *buff = temp_buffer;
@@ -48,7 +51,7 @@ static inline bool _handle_packet_segment(size_t len, uint8_t** buff, size_t* cu
 #define STREAM_PACKET_BODY(len, VAR_BUFF, VAR_LEN)  \
     uint8_t* VAR_BUFF; \
     size_t VAR_LEN; \
-    for (size_t _curr_len=0; _handle_packet_segment(len, &VAR_BUFF, &_curr_len, &VAR_LEN); )
+    for (size_t _curr_len=0; _handle_packet_segment(len, &(VAR_BUFF), &_curr_len, &(VAR_LEN)); )
 
 
 

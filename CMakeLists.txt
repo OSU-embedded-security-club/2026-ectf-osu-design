@@ -32,18 +32,21 @@ if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
   set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
 else()
 
-  add_compile_definitions(SIMU)
+  set(CMAKE_C_COMPILER gcc)
+  add_compile_definitions(SIMU
+    
+    # Get UART working
+    _POSIX_C_SOURCE=200809L
+    _DEFAULT_SOURCE
+    _XOPEN_SOURCE=600
+  )
   add_compile_options(
     -O0
     -g
     -Wall
     -Wextra
-    # Adds IO stuff for uart
-    -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
   )
 
-
-  set(CMAKE_C_COMPILER gcc)
 
 endif()
 

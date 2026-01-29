@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# NOTE: This requires a specifc for your dir
+
 CONTAINER_DIR="/workspaces/2026-ectf-osu-design"
 DIR="$(dirname $(realpath "$0"))"
 

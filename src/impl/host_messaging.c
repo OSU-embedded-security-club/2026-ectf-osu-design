@@ -2,6 +2,7 @@
 #include "hal.h"
 #include "impl.h"
 #include "impl_state.h"
+#include "uart_utils.h"
 
 // #include <endian.h>
 #include <stdbool.h>
@@ -65,7 +66,7 @@ void write_ack(){
 
 
 void read_packet_header(HostOp *read_op, uint16_t *read_length) {
-  if (HOST_HEADER_SIZE != HAL_read_uart(UART_control, temp_buffer)) {
+  if (0 != safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
     print_debug("Host protocol error: Incorrect sized header");
     HAL_on_error();
   }
@@ -76,10 +77,22 @@ void read_packet_header(HostOp *read_op, uint16_t *read_length) {
 
 
 static void read_ack() {
-  size_t len = HAL_read_uart(UART_control, temp_buffer);
+  if (0 != safe_uart_read(UART_control, temp_buffer, HOST_HEADER_SIZE)){
+    print_debug("Host protocol error: Incorrect sized header (on expected ack)");
+    HAL_on_error();
+  }
+ 
+  // These checks could be removed?
+  HostOp op;
+  uint16_t len;
 
-  if (len != HOST_HEADER_SIZE) {
-    print_error("Host protocol error: invalid ack packet size");
+  _read_packet_header(&op, &len, temp_buffer);
+  if (op != OP_ACK) {
+    print_debug("Host protocol error: Expected ack, got %x", op);
+    HAL_on_error();
+  }
+  if (len) {
+    print_debug("Host protocol error: An ack MUST have zero length");
     HAL_on_error();
   }
 }
@@ -96,8 +109,6 @@ static void read_ack() {
 //================================
 //  Important messaging functions
 //================================
-
-
 
 void write_response_body(uint8_t* data, size_t len) {
   read_ack();
@@ -130,16 +141,14 @@ void packet_send(HostOp op, uint8_t* data, size_t len) {
 
 
 
-size_t read_packet_segment() {
-  size_t out = HAL_read_uart(UART_control, temp_buffer);
-  write_ack();
-
-  if (out > 256) {
-    print_error("Host Protocol error: Illegal segment size: %lu", (unsigned long) out);
+size_t read_packet_segment(size_t seg_size) {
+  if (0 == safe_uart_read(UART_control, temp_buffer, seg_size)) {
+    print_error("Host Protocol error: Timeout in uart segment read");
     HAL_on_error();
   }
-  return out;
 
+  write_ack();
+  return seg_size;
 }
 
 

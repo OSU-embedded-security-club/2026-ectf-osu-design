@@ -36,10 +36,6 @@ void IMPL_on_uart(UartInterface interface) {
 
 
 
-  
-
-
-
   END_UART_SECTION
   
 }
