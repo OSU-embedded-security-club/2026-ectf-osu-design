@@ -143,8 +143,8 @@ void packet_send(HostOp op, uint8_t* data, size_t len) {
 }
 
 
-void read_packet_segment(size_t seg_size) {
-  if (safe_uart_read(UART_control, temp_buffer, seg_size)) {
+void read_packet_segment(uint8_t* buffer, size_t seg_size) {
+  if (safe_uart_read(UART_control, buffer, seg_size)) {
     print_error("Host Protocol error: Timeout in uart segment read");
     HAL_on_error();
   }

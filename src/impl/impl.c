@@ -12,17 +12,18 @@ void IMPL_on_uart(UartInterface interface) {
   HostOp hp;
   uint16_t len;
 
+  char seg[256];
   read_packet_header(&hp, &len);
-  STREAM_PACKET_BODY(len, buff, new_len) {
-    buff[new_len] = 0 ;
+  STREAM_PACKET_BODY(len, (uint8_t*) seg, new_len) {
+    seg[new_len] = 0;
   }
-  print_debug("Pin: %s", buff);
+  print_debug("Pin: %s", seg);
 
 
   uint8_t files_d[4 + 1 + 2 + 32] = {
     1, 0, 0, 0,
-    '1',
-    'a', 'a',
+    0,
+    0, 0,
     't', 'e', 's', 't',' ', 'f', 'i', 'l', 'e', '!'
   };
   packet_send(hp, files_d, sizeof(files_d));

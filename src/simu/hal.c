@@ -12,6 +12,7 @@
 #include <sys/poll.h>
 #include <termios.h>
 #include <unistd.h>
+#include <time.h>
 
 #define _POSIX_C_SOURCE 200809L
 
@@ -44,6 +45,21 @@ void HAL_led_toggle(){
 
 
 
+static struct timespec start_clock;
+void HAL_set_timer() {
+  clock_gettime(CLOCK_MONOTONIC, &start_clock);
+}
+// Return timer info is in micro secounds
+uint32_t HAL_get_timer() {
+  struct timespec end;
+
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  uint32_t seconds = end.tv_sec - start_clock.tv_sec;
+  uint32_t nanoseconds = end.tv_nsec - start_clock.tv_nsec;
+  
+  return (seconds * 1000000) + (nanoseconds / 1000);
+}
+
 void HAL_usleep(uint32_t micro) {
   usleep(micro);
 }
@@ -57,18 +73,34 @@ static inline UartSimulator* uart_from(UartInterface i) {
 }
 
 
+bool HAL_write_uart_checked(UartInterface interface, uint8_t byte) {
+  ssize_t written =  US_write(uart_from(interface), &byte, 1);
+  if (-1 == written) {
+    if (errno == EAGAIN) {
+      errno = 0;
+      return 0;
+    }
 
-size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_size) {
-  ssize_t size = US_read(uart_from(interface), buffer, max_size);
+    fprintf(stderr, "SIMU: Failed to read from UART %s; %s\n", 
+            interface == UART_control ? "control" : "transfer", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+  return 1 == written;
+}
+bool HAL_read_uart_checked(UartInterface interface, uint8_t* out_byte){
+  ssize_t size = US_read(uart_from(interface), out_byte, 1);
   if (size == -1) {
-    if (errno == EAGAIN) return 0;
+    if (errno == EAGAIN) {
+      errno = 0;
+     return 0;
+    }
 
     fprintf(stderr, "SIMU: Failed to read from UART %s; %s\n", 
             interface == UART_control ? "control" : "transfer", strerror(errno));
     exit(EXIT_FAILURE);
   }
 
-  return (size_t) size;
+  return 1 == size;
 }
 
 size_t HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len){

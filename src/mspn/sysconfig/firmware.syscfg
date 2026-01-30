@@ -22,12 +22,7 @@ const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
 UART1.targetBaudRate                   = 115200;
 UART1.enableFIFO                       = true;
-
-/** This might need to be changes **/
 UART1.rxFifoThreshold                  = "DL_UART_RX_FIFO_LEVEL_ONE_ENTRY";
-UART1.enableDMARX                      = false;
-UART1.enableDMATX                      = false;
-UART1.enableInternalLoopback           = false;
 UART1.$name                            = "CONTROL";
 UART1.enabledInterrupts                = ["RX"];
 UART1.peripheral.rxPin.$assign         = "boosterpack.29";

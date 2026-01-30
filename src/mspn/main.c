@@ -10,20 +10,13 @@
 
 
 static void UART_IRQHandler(UartInterface inter, UART_Regs* inst) {
-  static bool handle_uart = true;
-
-  // Critical section
-  __disable_irq();
-  if (!handle_uart) return;
-  handle_uart = false;
-  __enable_irq();
-
-  if (DL_UART_MAIN_IIDX_RX == DL_UART_Main_getPendingInterrupt(inst))
-    IMPL_on_uart(inter);
-
-  handle_uart = true;
-
-  
+  // Read IIDX to determine the source AND clear the pending flag
+  switch (DL_UART_Main_getPendingInterrupt(inst)) {
+    case DL_UART_MAIN_IIDX_RX_TIMEOUT_ERROR:
+    case DL_UART_MAIN_IIDX_RX:
+      IMPL_on_uart(inter);
+    default: break;
+  }
 }
 
 

@@ -1,10 +1,8 @@
 #include "hal.h"
 #include <stddef.h>
 
-#define MAX_ATTEMPTS 64
-
-// 10 ms
-#define ATTEMPT_REST_MICROSECOUNDS (10 * 1000)
+// 500 ms
+#define UART_TIMEOUT 500 * 1000 * 1000
 
 
 /*

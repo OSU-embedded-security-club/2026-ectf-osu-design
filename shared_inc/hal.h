@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdnoreturn.h>
 
 
@@ -27,8 +28,15 @@ void HAL_usleep(uint32_t micro);
 #define MAX_READ_SIZE 512 
 
 
-// Note: Only write as much as is possible. See uart_utils.c:safe_uart_write for what you should actually use
-size_t HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len);
+// Note: This is intentionally made to be like DL_UART_{receive,transmit}DataCheck
+//       See uart_utils.c:safe_uart_{read, write} for what you should actually use
+//
+// Returns true if successful.
+bool HAL_write_uart_checked(UartInterface interface, uint8_t byte);
+bool HAL_read_uart_checked(UartInterface interface, uint8_t* out_byte);
 
-// Note: Only reads avalible data, might be truncated. See uart_utils.c:safe_uart_read for what you should actually use
-size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_count);
+
+void HAL_set_timer();
+// Return timer info is in micro secounds
+uint32_t HAL_get_timer();
+
