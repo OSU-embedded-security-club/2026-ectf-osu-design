@@ -19,3 +19,4 @@ build-*/
 out/
 
 hsm.*
+src/mspn/sysconfig/device*
