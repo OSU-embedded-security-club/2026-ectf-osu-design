@@ -54,3 +54,8 @@ cmd = cmd,
 })
 ```
 
+### Regenerating the sysconfig
+Do **NOT** do this unless you know what you are doing
+```bash
+sysconfig --script src/mspn/sysconfig/firmware.syscfg --output src/mspn/sysconfig/ --product mspm0-sdk/.metadata/product.json
+```

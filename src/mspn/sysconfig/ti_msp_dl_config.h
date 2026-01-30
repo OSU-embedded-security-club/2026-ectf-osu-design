@@ -77,38 +77,38 @@ extern "C" {
 
 
 
-/* Defines for HOST */
-#define HOST_INST                                                          UART0
-#define HOST_INST_FREQUENCY                                             32000000
-#define HOST_INST_IRQHandler                                    UART0_IRQHandler
-#define HOST_INST_INT_IRQN                                        UART0_INT_IRQn
-#define GPIO_HOST_RX_PORT                                                  GPIOA
-#define GPIO_HOST_TX_PORT                                                  GPIOA
-#define GPIO_HOST_RX_PIN                                          DL_GPIO_PIN_11
-#define GPIO_HOST_TX_PIN                                          DL_GPIO_PIN_10
-#define GPIO_HOST_IOMUX_RX                                       (IOMUX_PINCM26)
-#define GPIO_HOST_IOMUX_TX                                       (IOMUX_PINCM25)
-#define GPIO_HOST_IOMUX_RX_FUNC                        IOMUX_PINCM26_PF_UART0_RX
-#define GPIO_HOST_IOMUX_TX_FUNC                        IOMUX_PINCM25_PF_UART0_TX
-#define HOST_BAUD_RATE                                                  (115200)
-#define HOST_IBRD_32_MHZ_115200_BAUD                                        (17)
-#define HOST_FBRD_32_MHZ_115200_BAUD                                        (23)
-/* Defines for HSM */
-#define HSM_INST                                                           UART1
-#define HSM_INST_FREQUENCY                                              32000000
-#define HSM_INST_IRQHandler                                     UART1_IRQHandler
-#define HSM_INST_INT_IRQN                                         UART1_INT_IRQn
-#define GPIO_HSM_RX_PORT                                                   GPIOA
-#define GPIO_HSM_TX_PORT                                                   GPIOA
-#define GPIO_HSM_RX_PIN                                            DL_GPIO_PIN_9
-#define GPIO_HSM_TX_PIN                                            DL_GPIO_PIN_8
-#define GPIO_HSM_IOMUX_RX                                        (IOMUX_PINCM20)
-#define GPIO_HSM_IOMUX_TX                                        (IOMUX_PINCM19)
-#define GPIO_HSM_IOMUX_RX_FUNC                         IOMUX_PINCM20_PF_UART1_RX
-#define GPIO_HSM_IOMUX_TX_FUNC                         IOMUX_PINCM19_PF_UART1_TX
-#define HSM_BAUD_RATE                                                   (115200)
-#define HSM_IBRD_32_MHZ_115200_BAUD                                         (17)
-#define HSM_FBRD_32_MHZ_115200_BAUD                                         (23)
+/* Defines for TRANSFER */
+#define TRANSFER_INST                                                      UART0
+#define TRANSFER_INST_FREQUENCY                                         32000000
+#define TRANSFER_INST_IRQHandler                                UART0_IRQHandler
+#define TRANSFER_INST_INT_IRQN                                    UART0_INT_IRQn
+#define GPIO_TRANSFER_RX_PORT                                              GPIOA
+#define GPIO_TRANSFER_TX_PORT                                              GPIOA
+#define GPIO_TRANSFER_RX_PIN                                      DL_GPIO_PIN_11
+#define GPIO_TRANSFER_TX_PIN                                      DL_GPIO_PIN_10
+#define GPIO_TRANSFER_IOMUX_RX                                   (IOMUX_PINCM26)
+#define GPIO_TRANSFER_IOMUX_TX                                   (IOMUX_PINCM25)
+#define GPIO_TRANSFER_IOMUX_RX_FUNC                    IOMUX_PINCM26_PF_UART0_RX
+#define GPIO_TRANSFER_IOMUX_TX_FUNC                    IOMUX_PINCM25_PF_UART0_TX
+#define TRANSFER_BAUD_RATE                                              (115200)
+#define TRANSFER_IBRD_32_MHZ_115200_BAUD                                    (17)
+#define TRANSFER_FBRD_32_MHZ_115200_BAUD                                    (23)
+/* Defines for CONTROL */
+#define CONTROL_INST                                                       UART1
+#define CONTROL_INST_FREQUENCY                                          32000000
+#define CONTROL_INST_IRQHandler                                 UART1_IRQHandler
+#define CONTROL_INST_INT_IRQN                                     UART1_INT_IRQn
+#define GPIO_CONTROL_RX_PORT                                               GPIOA
+#define GPIO_CONTROL_TX_PORT                                               GPIOA
+#define GPIO_CONTROL_RX_PIN                                        DL_GPIO_PIN_9
+#define GPIO_CONTROL_TX_PIN                                        DL_GPIO_PIN_8
+#define GPIO_CONTROL_IOMUX_RX                                    (IOMUX_PINCM20)
+#define GPIO_CONTROL_IOMUX_TX                                    (IOMUX_PINCM19)
+#define GPIO_CONTROL_IOMUX_RX_FUNC                     IOMUX_PINCM20_PF_UART1_RX
+#define GPIO_CONTROL_IOMUX_TX_FUNC                     IOMUX_PINCM19_PF_UART1_TX
+#define CONTROL_BAUD_RATE                                               (115200)
+#define CONTROL_IBRD_32_MHZ_115200_BAUD                                     (17)
+#define CONTROL_FBRD_32_MHZ_115200_BAUD                                     (23)
 
 
 
@@ -119,8 +119,8 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
-void SYSCFG_DL_HOST_init(void);
-void SYSCFG_DL_HSM_init(void);
+void SYSCFG_DL_TRANSFER_init(void);
+void SYSCFG_DL_CONTROL_init(void);
 
 
 #ifdef __cplusplus

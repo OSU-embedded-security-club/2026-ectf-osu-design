@@ -50,8 +50,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_GPIO_init();
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
-    SYSCFG_DL_HOST_init();
-    SYSCFG_DL_HSM_init();
+    SYSCFG_DL_TRANSFER_init();
+    SYSCFG_DL_CONTROL_init();
 }
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
@@ -59,14 +59,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_GPIO_reset(GPIOA);
     DL_GPIO_reset(GPIOB);
     DL_GPIO_reset(GPIOC);
-    DL_UART_Main_reset(HOST_INST);
-    DL_UART_Main_reset(HSM_INST);
+    DL_UART_Main_reset(TRANSFER_INST);
+    DL_UART_Main_reset(CONTROL_INST);
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
     DL_GPIO_enablePower(GPIOC);
-    DL_UART_Main_enablePower(HOST_INST);
-    DL_UART_Main_enablePower(HSM_INST);
+    DL_UART_Main_enablePower(TRANSFER_INST);
+    DL_UART_Main_enablePower(CONTROL_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
 
@@ -74,13 +74,13 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
 
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_HOST_IOMUX_TX, GPIO_HOST_IOMUX_TX_FUNC);
+        GPIO_TRANSFER_IOMUX_TX, GPIO_TRANSFER_IOMUX_TX_FUNC);
     DL_GPIO_initPeripheralInputFunction(
-        GPIO_HOST_IOMUX_RX, GPIO_HOST_IOMUX_RX_FUNC);
+        GPIO_TRANSFER_IOMUX_RX, GPIO_TRANSFER_IOMUX_RX_FUNC);
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_HSM_IOMUX_TX, GPIO_HSM_IOMUX_TX_FUNC);
+        GPIO_CONTROL_IOMUX_TX, GPIO_CONTROL_IOMUX_TX_FUNC);
     DL_GPIO_initPeripheralInputFunction(
-        GPIO_HSM_IOMUX_RX, GPIO_HSM_IOMUX_RX_FUNC);
+        GPIO_CONTROL_IOMUX_RX, GPIO_CONTROL_IOMUX_RX_FUNC);
 
 }
 
@@ -97,12 +97,12 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 }
 
 
-static const DL_UART_Main_ClockConfig gHOSTClockConfig = {
+static const DL_UART_Main_ClockConfig gTRANSFERClockConfig = {
     .clockSel    = DL_UART_MAIN_CLOCK_BUSCLK,
     .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1
 };
 
-static const DL_UART_Main_Config gHOSTConfig = {
+static const DL_UART_Main_Config gTRANSFERConfig = {
     .mode        = DL_UART_MAIN_MODE_NORMAL,
     .direction   = DL_UART_MAIN_DIRECTION_TX_RX,
     .flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,
@@ -111,64 +111,68 @@ static const DL_UART_Main_Config gHOSTConfig = {
     .stopBits    = DL_UART_MAIN_STOP_BITS_ONE
 };
 
-SYSCONFIG_WEAK void SYSCFG_DL_HOST_init(void)
+SYSCONFIG_WEAK void SYSCFG_DL_TRANSFER_init(void)
 {
-    DL_UART_Main_setClockConfig(HOST_INST, (DL_UART_Main_ClockConfig *) &gHOSTClockConfig);
+    DL_UART_Main_setClockConfig(TRANSFER_INST, (DL_UART_Main_ClockConfig *) &gTRANSFERClockConfig);
 
-    DL_UART_Main_init(HOST_INST, (DL_UART_Main_Config *) &gHOSTConfig);
+    DL_UART_Main_init(TRANSFER_INST, (DL_UART_Main_Config *) &gTRANSFERConfig);
     /*
      * Configure baud rate by setting oversampling and baud rate divisors.
      *  Target baud rate: 115200
      *  Actual baud rate: 115211.52
      */
-    DL_UART_Main_setOversampling(HOST_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(HOST_INST, HOST_IBRD_32_MHZ_115200_BAUD, HOST_FBRD_32_MHZ_115200_BAUD);
-
-
-    /* Configure FIFOs */
-    DL_UART_Main_enableFIFOs(HOST_INST);
-    DL_UART_Main_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
-    DL_UART_Main_setTXFIFOThreshold(HOST_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
-
-    DL_UART_Main_enable(HOST_INST);
-}
-static const DL_UART_Main_ClockConfig gHSMClockConfig = {
-    .clockSel    = DL_UART_MAIN_CLOCK_BUSCLK,
-    .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1
-};
-
-static const DL_UART_Main_Config gHSMConfig = {
-    .mode        = DL_UART_MAIN_MODE_NORMAL,
-    .direction   = DL_UART_MAIN_DIRECTION_TX_RX,
-    .flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,
-    .parity      = DL_UART_MAIN_PARITY_NONE,
-    .wordLength  = DL_UART_MAIN_WORD_LENGTH_8_BITS,
-    .stopBits    = DL_UART_MAIN_STOP_BITS_ONE
-};
-
-SYSCONFIG_WEAK void SYSCFG_DL_HSM_init(void)
-{
-    DL_UART_Main_setClockConfig(HSM_INST, (DL_UART_Main_ClockConfig *) &gHSMClockConfig);
-
-    DL_UART_Main_init(HSM_INST, (DL_UART_Main_Config *) &gHSMConfig);
-    /*
-     * Configure baud rate by setting oversampling and baud rate divisors.
-     *  Target baud rate: 115200
-     *  Actual baud rate: 115211.52
-     */
-    DL_UART_Main_setOversampling(HSM_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(HSM_INST, HSM_IBRD_32_MHZ_115200_BAUD, HSM_FBRD_32_MHZ_115200_BAUD);
+    DL_UART_Main_setOversampling(TRANSFER_INST, DL_UART_OVERSAMPLING_RATE_16X);
+    DL_UART_Main_setBaudRateDivisor(TRANSFER_INST, TRANSFER_IBRD_32_MHZ_115200_BAUD, TRANSFER_FBRD_32_MHZ_115200_BAUD);
 
 
     /* Configure Interrupts */
-    DL_UART_Main_enableInterrupt(HSM_INST,
+    DL_UART_Main_enableInterrupt(TRANSFER_INST,
                                  DL_UART_MAIN_INTERRUPT_RX);
 
     /* Configure FIFOs */
-    DL_UART_Main_enableFIFOs(HSM_INST);
-    DL_UART_Main_setRXFIFOThreshold(HSM_INST, DL_UART_RX_FIFO_LEVEL_FULL);
-    DL_UART_Main_setTXFIFOThreshold(HSM_INST, DL_UART_TX_FIFO_LEVEL_EMPTY);
+    DL_UART_Main_enableFIFOs(TRANSFER_INST);
+    DL_UART_Main_setRXFIFOThreshold(TRANSFER_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
+    DL_UART_Main_setTXFIFOThreshold(TRANSFER_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
 
-    DL_UART_Main_enable(HSM_INST);
+    DL_UART_Main_enable(TRANSFER_INST);
+}
+static const DL_UART_Main_ClockConfig gCONTROLClockConfig = {
+    .clockSel    = DL_UART_MAIN_CLOCK_BUSCLK,
+    .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1
+};
+
+static const DL_UART_Main_Config gCONTROLConfig = {
+    .mode        = DL_UART_MAIN_MODE_NORMAL,
+    .direction   = DL_UART_MAIN_DIRECTION_TX_RX,
+    .flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,
+    .parity      = DL_UART_MAIN_PARITY_NONE,
+    .wordLength  = DL_UART_MAIN_WORD_LENGTH_8_BITS,
+    .stopBits    = DL_UART_MAIN_STOP_BITS_ONE
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_CONTROL_init(void)
+{
+    DL_UART_Main_setClockConfig(CONTROL_INST, (DL_UART_Main_ClockConfig *) &gCONTROLClockConfig);
+
+    DL_UART_Main_init(CONTROL_INST, (DL_UART_Main_Config *) &gCONTROLConfig);
+    /*
+     * Configure baud rate by setting oversampling and baud rate divisors.
+     *  Target baud rate: 115200
+     *  Actual baud rate: 115211.52
+     */
+    DL_UART_Main_setOversampling(CONTROL_INST, DL_UART_OVERSAMPLING_RATE_16X);
+    DL_UART_Main_setBaudRateDivisor(CONTROL_INST, CONTROL_IBRD_32_MHZ_115200_BAUD, CONTROL_FBRD_32_MHZ_115200_BAUD);
+
+
+    /* Configure Interrupts */
+    DL_UART_Main_enableInterrupt(CONTROL_INST,
+                                 DL_UART_MAIN_INTERRUPT_RX);
+
+    /* Configure FIFOs */
+    DL_UART_Main_enableFIFOs(CONTROL_INST);
+    DL_UART_Main_setRXFIFOThreshold(CONTROL_INST, DL_UART_RX_FIFO_LEVEL_FULL);
+    DL_UART_Main_setTXFIFOThreshold(CONTROL_INST, DL_UART_TX_FIFO_LEVEL_EMPTY);
+
+    DL_UART_Main_enable(CONTROL_INST);
 }
 

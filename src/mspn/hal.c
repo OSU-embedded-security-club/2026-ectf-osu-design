@@ -34,7 +34,7 @@ void HAL_usleep(uint32_t micro) {
 }
 
 static inline UART_Regs* uart_from(UartInterface interface) {
-  return interface == UART_control ? HOST_INST : HSM_INST;
+  return interface == UART_control ? CONTROL_INST : TRANSFER_INST;
 }
 
 
