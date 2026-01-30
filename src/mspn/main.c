@@ -1,6 +1,8 @@
 #include "hal.h"
 #include "sysconfig/ti_msp_dl_config.h"
 #include "impl.h"
+#include <stdint.h>
+#include <string.h>
 
 void UART_0_INST_IRQHandler(void) {
   switch (DL_UART_Main_getPendingInterrupt(HOST_INST)) {
@@ -14,9 +16,10 @@ void UART_0_INST_IRQHandler(void) {
 }
 void main_loop(void) {
   while (1) {
-    __WFE();
-    if (DL_UART_isRXFIFOEmpty(HOST_INST)) IMPL_on_uart(UART_control);
-    if (DL_UART_isRXFIFOEmpty(HSM_INST)) IMPL_on_uart(UART_transfer);
+    if (!DL_UART_isRXFIFOEmpty(HOST_INST)) IMPL_on_uart(UART_control);
+    if (!DL_UART_isRXFIFOEmpty(HSM_INST)) IMPL_on_uart(UART_transfer);
+    // TODO: ACTUAL INTERUPTS
+    HAL_usleep(100);
   }
 }
 
@@ -29,6 +32,8 @@ int main(void) {
   // Setup LED pin
   DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);
   DL_GPIO_enableOutput(GPIOB, DL_GPIO_PIN_14);
-
+  
+  HAL_led_on();
   main_loop();
+
 }

@@ -70,13 +70,9 @@ size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_size) 
 
   return (size_t) size;
 }
-void HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len) {
-  ssize_t written = US_write(uart_from(interface), buffer, len);
-  if (written != (ssize_t) len) {
-    fprintf(stderr, "SIMU: failed to write to UART %s: %s\n",
-            interface == UART_control ? "control" : "transfer", strerror(errno));
-    exit(EXIT_FAILURE);
-  }
+
+size_t HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len){
+  return US_write(uart_from(interface), buffer, len);
 }
 
 

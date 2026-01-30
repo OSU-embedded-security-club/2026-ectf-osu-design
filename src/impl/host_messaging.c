@@ -38,7 +38,10 @@ void write_packet_header(HostOp op, uint16_t length) {
 
   uint8_t data[] = {'%', (uint8_t) op, lptr[0], lptr[1]};
 
-  HAL_write_uart(UART_control, data, sizeof(data));
+  if (safe_uart_write(UART_control, data, sizeof(data))) {
+    // TODO: Figure out a safe way to debug log this
+    HAL_on_error();
+  }
 }
 
 static void parse_packet_header(HostOp* read_op, uint16_t* read_length, uint8_t* src){
@@ -115,7 +118,9 @@ void write_response_body(uint8_t* data, size_t _len) {
   while (len > 0) {
     size_t amount = len > 256 ? 256 : len;
 
-    HAL_write_uart(UART_control, data, amount);
+    if (safe_uart_write(UART_control, data, amount)) {
+      HAL_on_error();
+    }
     read_ack();
 
     data += amount;
@@ -154,7 +159,10 @@ void IMPL_write_debug(char* message) {
    
 
   write_packet_header(OP_DEBUG, len);
-  HAL_write_uart(UART_control, (uint8_t*) message, len);
+
+  if (safe_uart_write(UART_control, (uint8_t*) message, len)) {
+    HAL_on_error();
+  }
 }
 
 void IMPL_write_error(char* message) {

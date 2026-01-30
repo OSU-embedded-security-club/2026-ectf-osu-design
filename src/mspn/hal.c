@@ -42,16 +42,9 @@ size_t HAL_read_uart(UartInterface interface, uint8_t* buffer, size_t max_count)
   UART_Regs* uart = uart_from(interface);
   return (size_t) DL_UART_drainRXFIFO(uart, buffer, max_count);
 }
-void HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len) {
+size_t HAL_write_uart(UartInterface interface, uint8_t* buffer, size_t len) {
   UART_Regs* uart = uart_from(interface);
-
-  // TODO: we also need a safe write...
-  
-  uint32_t written = 0;
-  while (written > len) {
-    written +=  DL_UART_fillTXFIFO(uart, &buffer[written], len - written);
-    if (written != len) HAL_usleep(10 * 100);
-  }
+  return (size_t) DL_UART_fillTXFIFO(uart, buffer, len);
 }
 
 
