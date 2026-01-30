@@ -22,12 +22,14 @@ const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
 UART1.targetBaudRate                   = 115200;
 UART1.enableFIFO                       = true;
+
+/** This might need to be changes **/
 UART1.rxFifoThreshold                  = "DL_UART_RX_FIFO_LEVEL_ONE_ENTRY";
-UART1.enabledInterrupts                = ["RX"];
 UART1.enableDMARX                      = false;
 UART1.enableDMATX                      = false;
 UART1.enableInternalLoopback           = false;
-UART1.$name                            = "TRANSFER";
+UART1.$name                            = "CONTROL";
+UART1.enabledInterrupts                = ["RX"];
 UART1.peripheral.rxPin.$assign         = "boosterpack.29";
 UART1.peripheral.txPin.$assign         = "boosterpack.30";
 UART1.txPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric0";
@@ -40,12 +42,11 @@ UART1.rxPinConfig.hideOutputInversion  = scripting.forceWrite(false);
 UART1.rxPinConfig.onlyInternalResistor = scripting.forceWrite(false);
 UART1.rxPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
 
-UART2.$name                            = "CONTROL";
+UART2.$name                            = "TRANSFER";
 UART2.targetBaudRate                   = 115200;
 UART2.enableFIFO                       = true;
 UART2.rxFifoThreshold                  = "DL_UART_RX_FIFO_LEVEL_FULL";
 UART2.txFifoThreshold                  = "DL_UART_TX_FIFO_LEVEL_EMPTY";
-UART2.enabledInterrupts                = ["RX"];
 UART2.peripheral.rxPin.$assign         = "boosterpack.3";
 UART2.peripheral.txPin.$assign         = "boosterpack.4";
 UART2.txPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric2";
