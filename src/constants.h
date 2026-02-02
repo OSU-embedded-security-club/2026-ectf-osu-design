@@ -1,3 +1,5 @@
+#pragma once
+
 #include "sysconfig/ti_msp_dl_config.h"
 #include "psa/crypto.h"
 
