@@ -1,68 +1,103 @@
 cmake_minimum_required(VERSION 3.29)
 
-set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(PROCESSOR_OPTIONS
-    -D__MSPM0L2228__
-    -march=thumbv6m
-    -mcpu=cortex-m0plus
-    -mfloat-abi=soft
-    -mlittle-endian
-    -mthumb
-)
+message(STATUS "BUILD_MODE = '${BUILD_MODE}'")
+
+
+# TODO: Remove this for during attack/handoff
+add_compile_definitions(DEBUG)
 
 set(OPTIMIZATION_OPTION -O0)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
 
-set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
-set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_compile_definitions(MSPN)
+  set(CMAKE_SYSTEM_NAME Generic)
+  set(PROCESSOR_OPTIONS
+      -D__MSPM0L2228__
+      -march=thumbv6m
+      -mcpu=cortex-m0plus
+      -mfloat-abi=soft
+      -mlittle-endian
+      -mthumb
+  )
 
-set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
+  set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
+  message(STATUS "ROOT = '${SDK_ROOT}'")
+  set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
+
+  set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
+else()
+
+  set(CMAKE_C_COMPILER gcc)
+  add_compile_definitions(SIMU
+    
+    # Get UART working
+    _POSIX_C_SOURCE=200809L
+    _DEFAULT_SOURCE
+    _XOPEN_SOURCE=600
+  )
+  add_compile_options(
+    -O0
+    -g
+    -Wall
+    -Wextra
+  )
+
+
+endif()
 
 project(hsm LANGUAGES C)
+
+
+include_directories("shared_inc")
 
 ##########################
 # Compiler Configuration #
 ##########################
 
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
 # Compiler options
-add_compile_options(
-    ${PROCESSOR_OPTIONS}
-    ${OPTIMIZATION_OPTION}
-    ${LTO_OPTION}
-    ${DEBUG_OPTION}
-)
+  add_compile_options(
+      ${PROCESSOR_OPTIONS}
+      ${OPTIMIZATION_OPTION}
+      ${LTO_OPTION}
+      ${DEBUG_OPTION}
+  )
 
 # Include SDK Headers
-include_directories(
-    ${SDK_ROOT}/source
-    ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
-)
+  include_directories(
+      ${SDK_ROOT}/source
+      ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
+  )
 
+endif()
 ########################
 # Linker Configuration #
 ########################
 
-add_link_options(
-    ${LTO_OPTION}            # Required when compiling AND linking
-    LINKER:--reread_libs
-    LINKER:--warn_sections
-    LINKER:--rom_model
-    ${CMAKE_SOURCE_DIR}/firmware.cmd
-)
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_link_options(
+      ${LTO_OPTION}            # Required when compiling AND linking
+      LINKER:--reread_libs
+      LINKER:--warn_sections
+      LINKER:--rom_model
+      ${CMAKE_SOURCE_DIR}/firmware.cmd
+  )
 
-link_directories(
-    ${TI_LLVM}/lib
-    ${SDK_ROOT}/source
-)
+  link_directories(
+      ${TI_LLVM}/lib
+      ${SDK_ROOT}/source
+  )
 
-link_libraries(
-    ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
-)
+  link_libraries(
+      ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
+  )
+endif()
 
 #################
 # Build mbedtls #
@@ -83,28 +118,46 @@ add_subdirectory(mbedtls)
 #####################
 # Create Executable #
 #####################
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c)
 
-add_executable(
-    hsm
-    ${SRC_FILES}
+file(GLOB_RECURSE IMPL_SRC CONFIGURE_DEPENDS
+  src/impl/*.c
 )
+
+add_executable(hsm)
+target_sources(hsm PRIVATE ${IMPL_SRC})
+
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  file(GLOB_RECURSE MSPN_SRC CONFIGURE_DEPENDS
+    src/mspn/*.c
+  )
+  target_sources(hsm PRIVATE ${MSPN_SRC})
+else()
+  file(GLOB_RECURSE SIMU_SRC CONFIGURE_DEPENDS
+    src/simu/*.c
+  )
+  target_sources(hsm PRIVATE ${SIMU_SRC})
+endif()
 
 target_link_libraries(hsm PRIVATE tfpsacrypto)
 
 set_target_properties(hsm PROPERTIES SUFFIX .elf)
 
-add_custom_command(TARGET hsm POST_BUILD
-    COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
-)
+
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  add_custom_command(TARGET hsm POST_BUILD
+      COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
+  )
+endif()
 
 ###########
 # Linting #
 ###########
 
-file(GLOB_RECURSE LINT_FILES CONFIGURE_DEPENDS src/*.h src/*.c)
-add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} ${LINT_FILES})
-add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} --warnings-as-errors=* ${LINT_FILES})
+if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
+  file(GLOB_RECURSE LINT_FILES CONFIGURE_DEPENDS src/*.h src/*.c)
+  add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} ${LINT_FILES})
+  add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} --warnings-as-errors=* ${LINT_FILES})
+endif()
 
 ##############
 # Build Docs #

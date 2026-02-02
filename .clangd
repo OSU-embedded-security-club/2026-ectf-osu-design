@@ -1,6 +1,7 @@
 CompileFlags:
     BuiltinHeaders: QueryDriver
-    Add: [--target=thumb]
+    Remove: [-mcpu=*, -mfloat-abi=*]
+    Add: [--target=arm-none-eabi]
     CompilationDatabase: build
 
 Completion:
