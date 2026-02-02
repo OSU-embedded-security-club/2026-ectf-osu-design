@@ -49,7 +49,6 @@ static struct timespec start_clock;
 void HAL_set_timer() {
   clock_gettime(CLOCK_MONOTONIC, &start_clock);
 }
-// Return timer info is in micro secounds
 uint32_t HAL_get_timer() {
   struct timespec end;
 
