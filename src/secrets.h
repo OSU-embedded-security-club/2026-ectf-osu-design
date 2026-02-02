@@ -1,0 +1,23 @@
+#include "group.h"
+
+//! @note This will likely change after implementing gen_secrets. This is temporary.
+const group_t groups[1] = {
+    {
+        .group_id = 0,
+        .public = {
+            .read_key = {},
+            .write_key = {},
+            .transfer_key = {}
+        },
+        .private = {
+            .permissions = {
+                .read = true,
+                .write = false,
+                .transfer = false,   
+            },
+            .read_key = {},
+            .write_key = {},
+            .transfer_key = {},
+        },
+    },
+};

@@ -1,3 +1,12 @@
 CompileFlags:
-  Remove: [-mcpu=*, -mfloat-abi=*]
-  Add: [--target=arm-none-eabi]
+    BuiltinHeaders: QueryDriver
+    Remove: [-mcpu=*, -mfloat-abi=*]
+    Add: [--target=arm-none-eabi]
+    CompilationDatabase: build
+
+Completion:
+    HeaderInsertion: Never
+    MacroFilter: FuzzyMatch
+
+Documentation:
+    CommentFormat: Doxygen

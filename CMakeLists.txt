@@ -154,8 +154,9 @@ endif()
 ###########
 
 if (NOT "${BUILD_MODE}" STREQUAL "SIMU")
-  add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy ${SRC_FILES})
-  add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy --warnings-as-errors=* ${SRC_FILES})
+  file(GLOB_RECURSE LINT_FILES CONFIGURE_DEPENDS src/*.h src/*.c)
+  add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} ${LINT_FILES})
+  add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} --warnings-as-errors=* ${LINT_FILES})
 endif()
 
 ##############
