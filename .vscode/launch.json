@@ -1,20 +1,20 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      // "preLaunchTask": "${defaultBuildTask}",
-      "type": "probe-rs-debug",
-      "request": "attach",
-      "name": "Debug",
-      "server": "172.16.2.5:50000",
-      "chip": "MSPM0L2228",
-      "wireProtocol": "Swd",
-      "coreConfigs": [
-        {
-          "programBinary": "build/hsm.elf",
-          "svdFile": "MSPM0L222X.svd"
-        }
-      ],
-    }
+      {
+        "cwd": "${workspaceFolder}",
+        "executable": "build/hsm.elf",
+        "name": "Debug with TI Embedded Debug for VS Code",
+        "request": "launch",
+        "type": "cortex-debug",
+        "servertype": "openocd",
+        "configFiles": [
+            "./interface/xds110.cfg",
+            "./board/ti_mspm0_launchpad.cfg"
+        ],
+        "runToEntryPoint": "main",
+        "showDevDebugOutput": "none",
+        "deviceName": "mspm0l2228"
+    },
   ]
 }
