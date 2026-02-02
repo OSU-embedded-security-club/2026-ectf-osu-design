@@ -3,5 +3,9 @@ CompileFlags:
     Add: [--target=thumb]
     CompilationDatabase: build
 
+Completion:
+    HeaderInsertion: Never
+    MacroFilter: FuzzyMatch
+
 Documentation:
     CommentFormat: Doxygen
