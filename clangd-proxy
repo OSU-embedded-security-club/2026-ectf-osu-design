@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# NOTE: This requires a specifc for your dir
+
+CONTAINER_DIR="/workspaces/2026-ectf-osu-design"
+DIR="$(dirname $(realpath "$0"))"
+
+echo Using path-mappings="$DIR=$CONTAINER_DIR"
+devcontainer exec --workspace-folder $DIR clangd \
+  --path-mappings="$DIR=$CONTAINER_DIR" \
+  --compile-commands-dir="$CONTAINER_DIR"
+  "$@"

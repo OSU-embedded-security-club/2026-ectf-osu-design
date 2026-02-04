@@ -39,7 +39,7 @@ void message_header_send_error(UART_Regs* uart, char* msg, size_t msg_len) {
     };
     message_header_response(uart, header);
 
-    utils_send_buffer(uart, msg, msg_len);
+    if (msg_len) utils_send_buffer(uart, msg, msg_len);
 }
 
 void message_header_send_debug(UART_Regs* uart, char* msg, size_t msg_len) {

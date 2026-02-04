@@ -4,6 +4,11 @@ set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
+# TODO: Remove this for during attack/handoff
+add_compile_definitions(DEBUG)
+
+
 set(PROCESSOR_OPTIONS
     -D__MSPM0L2228__
     -march=thumbv6m
