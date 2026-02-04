@@ -2,6 +2,7 @@
 --stack_size=256
 
 #define FLASH_BASE 0x6000
+#define FAT_BASE 0x3A000
 
 MEMORY
 {
@@ -17,6 +18,9 @@ MEMORY
 
 SECTIONS
 {
+    .fat:   > FAT_BASE
+    .slots  : palign(8) {} > APP2
+
     .intvecs:   > FLASH_BASE
     .text   : palign(8) {} > FLASH
     .const  : palign(8) {} > FLASH

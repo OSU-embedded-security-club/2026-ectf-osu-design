@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sysconfig/ti_msp_dl_config.h"
+#include "ti_msp_dl_config.h"
 #include "constants.h"
 
 /*!
@@ -31,9 +31,9 @@ typedef struct {
  */
 typedef struct {
     group_permissions_t permissions;
-    uint8_t read_key[KD_KEY_BYTES];
-    uint8_t write_key[SIGNATURE_KEY_BYTES];
-    uint8_t transfer_key[KD_KEY_BYTES];
+    uint8_t read_key[32];
+    uint8_t write_key[64];
+    uint8_t transfer_key[64];
 } group_private_t;
 
 /*!
@@ -43,9 +43,9 @@ typedef struct {
  * for all the permissions of every group.
  */
 typedef struct {
-    uint8_t read_key[KD_KEY_BYTES];
-    uint8_t write_key[SIGNATURE_KEY_BYTES];
-    uint8_t transfer_key[KD_KEY_BYTES];
+    uint8_t read_key[32];
+    uint8_t write_key[32];
+    uint8_t transfer_key[32];
 } group_public_t;
 
 /*!
@@ -55,10 +55,15 @@ typedef struct {
  * the host tools for each HSM. The const qualifier tells
  * the compiler to store the data in the .rodata section
  * on the flash as stated in the
- * [TI Arm Clang Compiler Toools User's Guide](https://software-dl.ti.com/codegen/docs/tiarmclang/compiler_tools_user_guide/compiler_manual/c_cpp_language_implementation/keywords.html)
+ * [TI Arm Clang Compiler Toools User's Guide](https://software-dl.ti.com/codegen/docs/tiarmclang/compiler_tools_user_guide/compiler_manual/c_cpp_language_implementation/keywords.html).
  */
 typedef struct {
+    //! Group Identifier
     uint16_t group_id;
+
+    //! Group Private Key Data
     group_public_t public;
+
+    //! Group Public Key Data
     group_private_t private;
 } group_t;

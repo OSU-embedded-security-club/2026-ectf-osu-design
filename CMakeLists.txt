@@ -41,6 +41,7 @@ add_compile_options(
 include_directories(
     ${SDK_ROOT}/source
     ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
+
 )
 
 ########################
@@ -64,21 +65,18 @@ link_libraries(
     ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
 )
 
-#################
-# Build mbedtls #
-#################
+####################
+# Build monocypher #
+####################
 
-# Disable testing and programs
-set(ENABLE_TESTING off CACHE BOOL "Enable mbedtls testing")
-set(ENABLE_PROGRAMS off CACHE BOOL "Enable mbedtls programs")
+add_library(monocypher
+    Monocypher/src/monocypher.c
+    Monocypher/src/optional/monocypher-ed25519.c
+)
 
-# Set config files
-set(MBEDTLS_CONFIG_FILE ${CMAKE_SOURCE_DIR}/mbedtls-config/mbedtls_config.h
-CACHE STRING "mbedtls config file")
-set(TF_PSA_CRYPTO_CONFIG_FILE ${CMAKE_SOURCE_DIR}/mbedtls-config/crypto_config.h
-CACHE STRING "mbedtls crypto config file")
-
-add_subdirectory(mbedtls)
+target_include_directories(monocypher PUBLIC
+    Monocypher/src
+)
 
 #####################
 # Create Executable #
@@ -87,10 +85,16 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c)
 
 add_executable(
     hsm
+    sysconfig/ti_msp_dl_config.c
+    sysconfig/mspm0l2228.c
     ${SRC_FILES}
 )
 
-target_link_libraries(hsm PRIVATE tfpsacrypto)
+target_include_directories(hsm PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(hsm PRIVATE monocypher)
 
 set_target_properties(hsm PROPERTIES SUFFIX .elf)
 

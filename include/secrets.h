@@ -1,4 +1,9 @@
+#pragma once
+
+#include "ti_msp_dl_config.h"
 #include "group.h"
+
+const uint8_t PIN_HASH;
 
 //! @note This will likely change after implementing gen_secrets. This is temporary.
 const group_t groups[1] = {
