@@ -54,7 +54,7 @@ typedef struct {
     file_metadata_t metadata;
 
     //! Ed25519PH Signature from File Writer
-    uint8_t writer_signature[32];
+    uint8_t writer_signature[64];
 } file_metadata_signed_t;
 
 
@@ -66,7 +66,7 @@ typedef struct {
     uint8_t encrypted_file[MAX_FILE_SIZE];
     
     //! Pad Slot so a whole number of sectors are used
-    uint8_t padding[792];
+    uint8_t padding[760];
 } file_slot_entry_t;
 
 __attribute__((location(0x3A000))) file_fat_entry_t file_address_table[NUM_SLOTS];
