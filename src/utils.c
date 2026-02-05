@@ -1,6 +1,6 @@
 #include "utils.h"
 
-bool message_utils_verify_pin(uint8_t pin[6]) {
+bool utils_verify_pin(uint8_t* pin, size_t pin_length) {
     // TODO: Implement pin verification logic
     return true;
 }

@@ -8,7 +8,7 @@
  * @return true     Host provided a valid pin
  * @return false    Host provided an invalid pin
  */
-bool message_utils_verify_pin(uint8_t pin[6]);
+bool utils_verify_pin(uint8_t* pin, size_t pin_length);
 
 
 /**
