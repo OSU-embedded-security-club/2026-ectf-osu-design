@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.29)
 
+# TODO: Remove this for during attack/handoff
+add_compile_definitions(DEBUG)
+
+
 set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
