@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "message/header.h"
 
 #include "ti_msp_dl_config.h"
 
