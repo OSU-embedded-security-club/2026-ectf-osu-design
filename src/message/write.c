@@ -9,16 +9,16 @@
 #define DMA_CHANNEL_1 1
 
 void message_write_response(message_header_t header) {
-    // TODO: Implement write response
-
+    //
     // Setup DMA before ACKing
+    //
 
     // Trigger 16 is UART0 Publisher 1
     // Check Datasheet for more info
     const DL_DMA_Config dma_config = {
-        .trigger = 16,
+        .trigger = 15,
         .triggerType = DL_DMA_TRIGGER_TYPE_EXTERNAL,
-        .transferMode = DL_DMA_FULL_CH_REPEAT_SINGLE_TRANSFER_MODE,
+        .transferMode = DL_DMA_SINGLE_TRANSFER_MODE,
         .extendedMode = DL_DMA_NORMAL_MODE,
         .srcWidth = DL_DMA_WIDTH_BYTE,
         .destWidth = DL_DMA_WIDTH_BYTE,
@@ -27,61 +27,68 @@ void message_write_response(message_header_t header) {
     };
     DL_DMA_initChannel(DMA, 0, &dma_config);
 
+    // Buffer to hold parital messages
     uint8_t buffer[256];
-    uint8_t buffer_length = 256 - HEADER_SIZE;
 
-    DL_DMA_setSrcAddr(DMA, DMA_CHANNEL_0, HOST_INST->RXDATA);
-    DL_DMA_setDestAddr(DMA, DMA_CHANNEL_0, *buffer);
-    DL_DMA_setTransferSize(DMA, DMA_CHANNEL_0, buffer_length);
+    // Configure transfer from HOST UART into buffer
+    DL_DMA_setSrcAddr(DMA, DMA_CHANNEL_0, (uint32_t) &(HOST_INST->RXDATA));
+    DL_DMA_setDestAddr(DMA, DMA_CHANNEL_0, (uint32_t) buffer);
 
+    // Send ACK to begin message transfer
+    message_header_send_ack(HOST_INST);
 
-    // message_header_response(HOST_INST, MESSAGE_HEADER_ACK);
+    // Bytes until next ACK
+    uint16_t bytes_to_ack = 256;
 
+    // Parse PIN from HOST UART
     uint8_t pin[PIN_LENGTH];
-
     for(int i = 0; i < PIN_LENGTH; i++) {
         pin[i] = DL_UART_receiveDataBlocking(HOST_INST);
     }
+    bytes_to_ack -= 6;
 
+    // Begin Constructing Metadata Entry
+    file_metadata_t metadata;
 
-    file_slot_entry_t slot_entry;
+    // Parse Slot from HOST UART
+    utils_receive_bytes(HOST_INST, &metadata.ectf_metadata.slot_number, sizeof(metadata.ectf_metadata.slot_number));
+    bytes_to_ack--;
 
-    file_metadata_t * metadata = &slot_entry.signed_metadata.metadata;
-
-    metadata->ectf_metadata.slot_number = DL_UART_receiveDataBlocking(HOST_INST);
-
+    // Parse Group ID from HOST UART
     uint8_t group_id[2] = {
         DL_UART_receiveDataBlocking(HOST_INST),
         DL_UART_receiveDataBlocking(HOST_INST),
     };
-    metadata->ectf_metadata.group_id = *((uint16_t*) group_id);
+    metadata.ectf_metadata.group_id = *((uint16_t*) group_id);
+    bytes_to_ack -= 2;
 
-    for(int i = 0; i < sizeof(metadata->ectf_metadata.name); i++) {
-        metadata->ectf_metadata.name[i] = DL_UART_receiveDataBlocking(HOST_INST);
+    // Parse file name from HOST UART
+    for(int i = 0; i < sizeof(metadata.ectf_metadata.name); i++) {
+        metadata.ectf_metadata.name[i] = DL_UART_receiveDataBlocking(HOST_INST);
+    }
+    bytes_to_ack -= sizeof(metadata.ectf_metadata.name);
 
-        // If last character is null-terminator break
-        if(metadata->ectf_metadata.name[i] == '\0')
-            break;
+    // Parse UUID from HOST UART
+    uint8_t uuid[16];
+    for(int i = 0; i < 16; i++) {
+        uuid[i] = DL_UART_receiveDataBlocking(HOST_INST);
     }
 
-    uint8_t uuid[2] = {
-        DL_UART_receiveDataBlocking(HOST_INST),
-        DL_UART_receiveDataBlocking(HOST_INST),
-    };
-
+    // Parse file size from HOST UART
     uint8_t file_size[2] = {
         DL_UART_receiveDataBlocking(HOST_INST),
         DL_UART_receiveDataBlocking(HOST_INST),
     };
-    metadata->file_size = *((uint16_t*)file_size);
+    metadata.file_size = *((uint16_t*)file_size);
 
     // Check if file size if less than 256 - HEADER_SIZE
-    if(metadata->file_size < buffer_length) {
+    if(metadata.file_size < buffer_length) {
         buffer_length = metadata->file_size;
         DL_DMA_setTransferSize(DMA, DMA_CHANNEL_0, buffer_length);
     }
 
     // Begin using DMA for Transfer
+    DL_DMA_enableChannel(DMA, DMA_CHANNEL_0);
     DL_UART_enableDMAReceiveEvent(HOST_INST, DL_UART_DMA_INTERRUPT_RX);
 
     // bool authenticated = utils_verify_pin(pin, sizeof(pin));
