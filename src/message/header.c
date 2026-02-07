@@ -52,3 +52,11 @@ void message_header_send_debug(UART_Regs* uart, char* msg, size_t msg_len) {
     utils_send_buffer(uart, msg, msg_len);
 }
 
+void message_header_send_ack(UART_Regs * uart) {
+    message_header_t ack_header = {
+        .operation = MESSAGE_ACK,
+        .message_length = 0,
+    };
+
+    message_header_response(uart, ack_header);
+}
