@@ -8,7 +8,8 @@ MEMORY
 {
     /* Divide this in half and allocate the first half to user space and the second reserved */
     BOOTLOADER      (RX)  : origin = 0x00000000, length = 0x00006000 /* Bootloader flash */
-    FLASH           (RX)  : origin = 0x00006000, length = 0x00034000 /* Location of team firmware */
+    FLASH           (RX)  : origin = 0x00006000, length = 0x00019FFF /* Location of team firmware */
+    FILE_STORE      (RW)  : origin = 0x00020000, length = 0x0001A000 /* File Store */
     FAT             (RW)  : origin = 0x0003A000, length = 0x00000400 /* Used to store tag, length, pointer values for files */
     APP2            (RX)  : origin = 0x0003A400, length = 0x00005c00 /* Location of team firmware */
     SRAM            (RWX) : origin = 0x20200000, length = 0x00008000
@@ -19,7 +20,7 @@ MEMORY
 SECTIONS
 {
     .fat:   > FAT_BASE
-    .slots  : palign(8) {} > APP2
+    .file_store : palign(1024) {} > FILE_STORE
 
     .intvecs:   > FLASH_BASE
     .text   : palign(8) {} > FLASH
