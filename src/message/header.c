@@ -32,7 +32,7 @@ void message_header_response(UART_Regs *uart, message_header_t header) {
 
 }
 
-void message_header_send_error(UART_Regs* uart, char* msg, size_t msg_len) {
+void message_header_send_error(UART_Regs* uart, const char* msg, size_t msg_len) {
     message_header_t header = {
         .operation = MESSAGE_ERROR,
         .message_length = msg_len,
@@ -42,7 +42,7 @@ void message_header_send_error(UART_Regs* uart, char* msg, size_t msg_len) {
     utils_send_buffer(uart, msg, msg_len);
 }
 
-void message_header_send_debug(UART_Regs* uart, char* msg, size_t msg_len) {
+void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len) {
     message_header_t header = {
         .operation = MESSAGE_DEBUG,
         .message_length = msg_len,

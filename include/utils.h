@@ -18,4 +18,4 @@ bool utils_verify_pin(uint8_t* pin, size_t pin_length);
  * @param buffer    Buffer Pointer
  * @param length    Buffer Length
  */
-void utils_send_buffer(UART_Regs * uart, void* buffer, size_t length);
+void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length);
