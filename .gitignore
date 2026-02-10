@@ -7,6 +7,7 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 compile_commands.json
+clangd-proxy
 
 CTestTestfile.cmake
 CMakeDoxyfile.in
