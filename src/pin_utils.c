@@ -101,7 +101,8 @@ static void apply_stage2(uint8_t *hash) {
   crypto_blake2b_update(&ctx, hash, 64);
 
   int int_data[] = {
-    // FACTORYREGION->BOOTCRC,
+    FACTORYREGION->BOOTCRC,
+    (int) (size_t) RANDOM_FUNC,
     STAGE2_RAND_INT,
     SEED
   };
