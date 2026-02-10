@@ -1,51 +1,57 @@
 #include "message/list.h"
 
-#define MAX_RETRY_DELAY_MS 5000
+#define PIN_LENGTH 6
+#define MAX_FILES 10
 
+/**
+ * @brief Helper to send data over UART
+ */
+void uart_write_string(char *str) {
+    for (size_t i = 0; i < strlen(str); i++) {
+        DL_UART_transmitDataBlocking(UART_0_INST, str[i]);
+    }
+}
+
+void get_filename_from_storage(i) {
+    // TODO: implement this function, or find an already implemented version
+}
+
+/**
+ * @brief Implementation of the 'list' command
+ */
 void message_list_response(message_header_t header) {
-    // TODO: Implement list response
+    uint8_t input_pin[PIN_LENGTH];
 
-    print_debug("Test");
+    // get the 6-digit pin
+    for (int i = 0; i < PIN_LENGTH; i++) {
+        input_pin[i] = (uint8_t)DL_UART_receiveDataBlocking(UART_0_INST);
+    }
 
-    /*
-    List details
-    Description:
-    List the files stored on the current HSM
+    // verify pin
+    bool is_valid = utils_verify_pin(input_pin, PIN_LENGTH);
 
-    usage:
-    uvx ectf tools <PORT> list [OPTIONS] <PIN: 6 digits>
-    example:
-    uvx ectf tools COM10 list 123456
-    Options:
-    --help
-    */
+    // wipe the pin from the stack
+    memset(input_pin, 0, sizeof(input_pin));
 
-    /*
-    Vulnerabilities to keep in mind:
-    1. Timing attacks when inserting pins
-    2. Brute force (only 1,000,000 combinations)
-    3. Buffer overflows - deals with file names
-    4. 
-
-    Solutions for vulnerabilities
-    1. Retry counter
-    2. Brute force delay (5 seconds)
-    3. Constant time check for pin
-    4. Make the pin verification inline
-    */
-
-    /*
-    psuedocode:
-    get the pin from the user
-    hash and salt the pin
-    inline check the pin in constant time
-    If correct
-        list all files on the system
-    else
-        deny and wait 5 seconds
-    clear sensitive data
-    */
-
-    char msg[] = "List not implemented yet";
-    message_header_send_error(HOST_INST, msg, sizeof(msg));
+    if (is_valid) {         // success
+        // list the filenames
+        uart_write_string("Listing files:\r\n");
+        
+        for (int i = 0; i < MAX_FILES; i++) {
+            char* name = get_filename_from_storage(i);
+            if (name != NULL) {
+                uart_write_string(" - ");
+                uart_write_string(name);
+                uart_write_string("\r\n");
+            }
+        }
+    } else {                // failure
+        // wait around 5 seconds
+        // the MSPM0L board runs at 32MHz
+        // 5 * 32000000 = 5 seconds
+        for(int i = 0; i < 5; i++) {
+            delay_cycles(32000000); 
+        }
+        uart_write_string("Error: Invalid PIN provided.\r\n");
+    }
 }
