@@ -8,12 +8,11 @@
 
 
 
-#define SEED (__TIME__[7] + __TIME__[6]*10 + __LINE__) 
 
 static uint8_t pin_hash[] = STAGE1_PIN_HASH;
 
 // Changed each reboot (to fuck with attackers)
-static uint8_t random_data[32];
+static alignas(int) uint8_t random_data[32];
 static uint8_t stage2_key[32];
 
 static const uint8_t stage1_key[] = STAGE1_KEY;
@@ -23,26 +22,26 @@ static void apply_stage2(uint8_t *hash);
 static void _unused(){}
 
 
+#define SEED ( *(int*)&random_data[4*__COUNTER__] )
 
 
 
 // Hash MUST be 64 long
 static void apply_stage1(uint8_t *hash)
 {
-  // It is undefined behavior to hash the hash, so a temp buffer is needed
-  // This is the user input, so it need not be wiped
-  uint8_t tmp[64];
+  uint8_t temp[64];
 
   for (int i = 0; i < STAGE1_PIN_ITERATIONS; i++) {
     crypto_blake2b_keyed(
-        tmp,
+        temp,
         64,
         stage1_key,
         sizeof(stage1_key),
         hash,
         64);
-    memcpy(hash, tmp, 64);
+    memcpy(hash, temp, 64);
   }
+  crypto_wipe(temp, 64);
 }
 
 
@@ -104,8 +103,8 @@ static void apply_stage2(uint8_t *hash) {
     FACTORYREGION->BOOTCRC,
     (int) (size_t) RANDOM_FUNC,
     STAGE2_RAND_INT,
-    SEED
   };
+
   crypto_blake2b_update(&ctx, (uint8_t*) int_data, sizeof(int_data));
   crypto_blake2b_update(&ctx, random_data, sizeof(random_data));
 
@@ -123,6 +122,7 @@ static void apply_stage2(uint8_t *hash) {
 
   crypto_blake2b_final(&ctx, temp);
   memcpy(hash, temp, 64);
+  crypto_wipe(temp, 64);
 }
 
 
