@@ -20,23 +20,15 @@ typedef struct {
     uint32_t address;
 } file_fat_entry_t;
 
-/**
- * @brief ECTF Host Tools Metadata
- */
-typedef struct {
-    uint8_t slot_number;
-    uint16_t group_id;
-    char name[32];
-} file_ectf_metadata_t;
-
 
 /*!
  * @brief Full File Metadata
  */
 typedef struct {
-    file_ectf_metadata_t ectf_metadata;
-    size_t file_size;
-    uint8_t aad[128];
+    uint16_t group_id;
+    char name[32];
+    uint16_t file_size;
+    uint8_t file_signature[128];
 
     /*!
      * This is the public key of a keypair generated for this
@@ -50,6 +42,9 @@ typedef struct {
  * @brief Signed File Metadata
  */
 typedef struct {
+    // Unsigned Slot Number
+    uint8_t slot_number;
+
     //! File Metadata
     file_metadata_t metadata;
 
@@ -66,11 +61,9 @@ typedef struct {
     uint8_t encrypted_file[MAX_FILE_SIZE];
     
     //! Pad Slot so a whole number of sectors are used
-    uint8_t padding[792];
+    uint8_t padding[794];
 } file_slot_entry_t;
 
-__attribute__((location(0x3A000))) file_fat_entry_t file_address_table[NUM_SLOTS];
+__attribute__((location(0x3A000))) static file_fat_entry_t file_address_table[NUM_SLOTS];
 
-// Using const will initalize this on flash
-// This will probably be changed later
-const file_slot_entry_t slots[NUM_SLOTS];
+__attribute__((section(".file_store"))) static file_slot_entry_t slots[NUM_SLOTS];
