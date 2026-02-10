@@ -21,6 +21,7 @@ out/
 hsm.*
 *.a
 src/mspn/sysconfig/device*
+include/secrets.h
 
 ### VisualStudioCode ###
 .vscode/*
