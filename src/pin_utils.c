@@ -114,7 +114,6 @@ static void apply_stage2(uint8_t *hash) {
   size_t ptr = (size_t) &apply_stage2; 
 
   // Compiler rng
-  crypto_blake2b_update(&ctx, (uint8_t*) &ptr, sizeof(void*));
   crypto_blake2b_update(&ctx, RANDOM_FUNC, 64);
 
 
