@@ -2,6 +2,10 @@
 ti-llvm
 build
 
+
+# Secrets
+include/secrets.h
+
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
