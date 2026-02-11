@@ -57,7 +57,7 @@ void message_header_response(UART_Regs* uart, message_header_t ctx);
  * @param[in] msg       Error message string
  * @param[in] msg_len   Length of the error message
  */
-void message_header_send_error(UART_Regs* uart, char* msg, size_t msg_len);
+void message_header_send_error(UART_Regs* uart, const char* msg, size_t msg_len);
 
 /**
  * @brief Sends a debug message to the Host Tools
@@ -66,11 +66,23 @@ void message_header_send_error(UART_Regs* uart, char* msg, size_t msg_len);
  * @param[in] msg       Debug message string
  * @param[in] msg_len   Length of the debug message
  */
+<<<<<<< HEAD
 void message_header_send_debug(UART_Regs* uart, char* msg, size_t msg_len);
+=======
+<<<<<<< Updated upstream
+void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len);
+=======
+void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len);
+>>>>>>> origin
 
 /**
  * @brief Sends an ACK message to the Host Tools
  *
  * @param[in] uart      UART registers for communication
  */
+<<<<<<< HEAD
 void message_header_send_ack(UART_Regs* uart);
+=======
+void message_header_send_ack(UART_Regs* uart);
+>>>>>>> Stashed changes
+>>>>>>> origin
