@@ -66,4 +66,15 @@ void message_header_send_error(UART_Regs* uart, const char* msg, size_t msg_len)
  * @param[in] msg       Debug message string
  * @param[in] msg_len   Length of the debug message
  */
+<<<<<<< Updated upstream
 void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len);
+=======
+void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len);
+
+/**
+ * @brief Sends an ACK message to the Host Tools
+ *
+ * @param[in] uart      UART registers for communication
+ */
+void message_header_send_ack(UART_Regs* uart);
+>>>>>>> Stashed changes
