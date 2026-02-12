@@ -20,9 +20,6 @@ bool utils_verify_pin(uint8_t* pin, size_t pin_length);
  */
 void utils_send_buffer(UART_Regs * uart, void* buffer, size_t length);
 
-<<<<<<< HEAD
-void utils_receive_bytes(UART_Regs* uart, uint8_t* buffer, size_t num_bytes);
-=======
 /**
  * @brief Receives a specified number of bytes from the UART
  *
@@ -34,4 +31,3 @@ void utils_receive_bytes(UART_Regs* uart, uint8_t* buffer, size_t num_bytes);
  * @param num_bytes Number of bytes to receive
  */
 void utils_receive_bytes(UART_Regs* uart, void* buffer, size_t num_bytes);
->>>>>>> origin

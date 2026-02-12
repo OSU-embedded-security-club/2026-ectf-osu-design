@@ -13,15 +13,8 @@ void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length) {
     }
 }
 
-<<<<<<< HEAD
-void utils_receive_bytes(UART_Regs* uart, uint8_t* buffer, size_t num_bytes) {
-    for(int i = 0; i < num_bytes; i++)
-        buffer[i] = DL_UART_receiveDataBlocking(HOST_INST);
-}
-=======
 void utils_receive_bytes(UART_Regs* uart, void* buffer, size_t num_bytes) {
     uint8_t* temp = buffer;
     for(int i = 0; i < num_bytes; i++)
         temp[i] = DL_UART_receiveDataBlocking(HOST_INST);
 }
->>>>>>> origin
