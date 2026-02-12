@@ -10,20 +10,19 @@
 
 
 static uint8_t pin_hash[] = STAGE1_PIN_HASH;
+static const uint8_t stage1_key[] = STAGE1_KEY;
 
 // Changed each reboot (to fuck with attackers)
 static alignas(int) uint8_t random_data[32];
 static uint8_t stage2_key[32];
 
-static const uint8_t stage1_key[] = STAGE1_KEY;
-
+#define SEED ( *(int*)&random_data[4*__COUNTER__] )
 static void apply_stage2(uint8_t *hash);
 
+// A potential option for something read as a secret,
+// reading the data here intentionally leads to 
+// deterministic undefined behavior.
 static void _unused(){}
-
-
-#define SEED ( *(int*)&random_data[4*__COUNTER__] )
-
 
 
 // Hash MUST be 64 long
@@ -100,23 +99,20 @@ static void apply_stage2(uint8_t *hash) {
   crypto_blake2b_update(&ctx, hash, 64);
 
   int int_data[] = {
-    FACTORYREGION->BOOTCRC,
-    (int) (size_t) RANDOM_FUNC,
-    STAGE2_RAND_INT,
+    FACTORYREGION->BOOTCRC, // Crc of ALL board specific values
+    (int) (size_t) RANDOM_FUNC, // Location in memory
+    STAGE2_RAND_INT, // Random int from generate_secrets.
   };
-
   crypto_blake2b_update(&ctx, (uint8_t*) int_data, sizeof(int_data));
+  
+  // Different each reboot
   crypto_blake2b_update(&ctx, random_data, sizeof(random_data));
 
   // Part of the bootloader
   crypto_blake2b_update(&ctx, (uint8_t*) 0, 64);
 
-  size_t ptr = (size_t) &apply_stage2; 
-
   // Compiler rng
   crypto_blake2b_update(&ctx, RANDOM_FUNC, 64);
-
-
 
 
   crypto_blake2b_final(&ctx, temp);
