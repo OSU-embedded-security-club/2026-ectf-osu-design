@@ -2,11 +2,16 @@
 ti-llvm
 build
 
+
+# Secrets
+include/secrets.h
+
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
 compile_commands.json
+clangd-proxy
 
 CTestTestfile.cmake
 CMakeDoxyfile.in
@@ -21,6 +26,7 @@ out/
 hsm.*
 *.a
 src/mspn/sysconfig/device*
+include/secrets.h
 
 ### VisualStudioCode ###
 .vscode/*
