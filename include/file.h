@@ -58,7 +58,7 @@ typedef struct {
  */
 typedef struct {
     file_metadata_signed_t signed_metadata;
-    uint8_t encrypted_file[MAX_FILE_SIZE];
+    uint8_t encrypted_file[FILE_PADDING_FRONT + MAX_FILE_SIZE + FILE_PADDING_BACK];
     
     //! Pad Slot so a whole number of sectors are used
     uint8_t padding[794];
