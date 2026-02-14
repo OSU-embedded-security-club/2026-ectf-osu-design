@@ -61,8 +61,9 @@ typedef struct {
     uint8_t encrypted_file[FILE_PADDING_FRONT + MAX_FILE_SIZE + FILE_PADDING_BACK];
     
     //! Pad Slot so a whole number of sectors are used
-    uint8_t padding[794];
+    uint8_t padding[1024 - (sizeof(file_metadata_signed_t) + sizeof(uint8_t[FILE_PADDING_FRONT + MAX_FILE_SIZE + FILE_PADDING_BACK])) % 1024];
 } file_slot_entry_t;
+
 
 __attribute__((location(0x3A000))) static file_fat_entry_t file_address_table[NUM_SLOTS];
 
