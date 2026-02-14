@@ -1,0 +1,7 @@
+@startuml
+json Group {
+    "Read": ["Private Key", "Public Key"],
+    "Write": ["Private Key", "Public Key"],
+    "Transfer": ["Private Key", "Public Key"]
+}
+@enduml
