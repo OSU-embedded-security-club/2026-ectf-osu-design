@@ -8,24 +8,15 @@ set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(PROCESSOR_OPTIONS
-    -D__MSPM0L2228__
-    -march=thumbv6m
-    -mcpu=cortex-m0plus
-    -mfloat-abi=soft
-    -mlittle-endian
-    -mthumb
-)
+
 
 set(OPTIMIZATION_OPTION -O0)
-set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
 
-set(SDK_ROOT "${CMAKE_SOURCE_DIR}/mspm0-sdk")
-set(TI_LLVM "$ENV{TI_LLVM_ROOT}")
+set(SDK_ROOT "${CMAKE_SOURCE_DIR}/pseudo-sdk")
 
-set(CMAKE_C_COMPILER ${TI_LLVM}/bin/tiarmclang)
+set(CMAKE_C_COMPILER /usr/bin/clang)
 
 project(hsm LANGUAGES C)
 
@@ -41,33 +32,12 @@ add_compile_options(
     ${DEBUG_OPTION}
 )
 
+message(${SDK_ROOT}/source)
 # Include SDK Headers
 include_directories(
     ${SDK_ROOT}/source
-    ${SDK_ROOT}/source/third_party/CMSIS/Core/Include
-
 )
 
-########################
-# Linker Configuration #
-########################
-
-add_link_options(
-    ${LTO_OPTION}            # Required when compiling AND linking
-    LINKER:--reread_libs
-    LINKER:--warn_sections
-    LINKER:--rom_model
-    ${CMAKE_SOURCE_DIR}/firmware.cmd
-)
-
-link_directories(
-    ${TI_LLVM}/lib
-    ${SDK_ROOT}/source
-)
-
-link_libraries(
-    ${SDK_ROOT}/source/ti/driverlib/lib/ticlang/m0p/mspm0l122x_l222x/driverlib.a
-)
 
 ####################
 # Build monocypher #
@@ -99,60 +69,3 @@ target_include_directories(hsm PUBLIC
 )
 
 target_link_libraries(hsm PRIVATE monocypher)
-
-set_target_properties(hsm PROPERTIES SUFFIX .elf)
-
-add_custom_command(TARGET hsm POST_BUILD
-    COMMAND ${TI_LLVM}/bin/tiarmobjcopy -O binary hsm.elf hsm.bin
-)
-
-###########
-# Linting #
-###########
-
-file(GLOB_RECURSE LINT_FILES CONFIGURE_DEPENDS src/*.h src/*.c)
-add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} ${LINT_FILES})
-add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} --warnings-as-errors=* ${LINT_FILES})
-
-##############
-# Build Docs #
-##############
-
-find_package(Doxygen)
-
-if(Doxygen_FOUND)
-    set(DOXYGEN_PROJECT_NAME "OSU Mitre 2026")
-
-    set(DOXYGEN_EXCLUDE
-        ${CMAKE_SOURCE_DIR}/docs/doxygen-awesome-css
-        ${CMAKE_SOURCE_DIR}/docs/.gitignore
-    )
-
-    set(DOXYGEN_HTML_EXTRA_STYLESHEET
-        docs/doxygen-awesome-css/doxygen-awesome.css
-        docs/doxygen-awesome-css/doxygen-awesome-sidebar-only.css
-    )
-
-    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/docs/index.md)
-
-    set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml.jar)
-    set(DOXYGEN_PLANTUMLFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/plantuml)
-
-    set(DOXYGEN_DOTFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/dotfiles)
-    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
-    set(DOXYGEN_INTERACTIVE_SVG YES)
-
-    set(DOXYGEN_CALL_GRAPH YES)
-    set(DOXYGEN_CALLER_GRAPH YES)
-    set(DOXYGEN_CLASS_DIAGRAMS YES)
-    set(DOXYGEN_TYPEDEF_HIDES_STRUCT YES)
-    set(DOXYGEN_UML_LOOK YES)
-
-    set(DOXYGEN_EXTRACT_ALL YES)
-
-    doxygen_add_docs(docs # Target
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/docs
-    )
-endif()

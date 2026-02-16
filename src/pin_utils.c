@@ -1,13 +1,10 @@
 #include "pin_utils.h"
-#include <ctype.h>
-#include <string.h>
-#include <monocypher.h>
-#include "secrets.h"
-#include <stdalign.h>
 #include "random.h"
-
-
-
+#include "secrets.h"
+#include <ctype.h>
+#include <monocypher.h>
+#include <stdalign.h>
+#include <string.h>
 
 static uint8_t pin_hash[] = STAGE1_PIN_HASH;
 static const uint8_t stage1_key[] = STAGE1_KEY;
@@ -16,34 +13,24 @@ static const uint8_t stage1_key[] = STAGE1_KEY;
 static alignas(int) uint8_t random_data[32];
 static uint8_t stage2_key[32];
 
-#define SEED ( *(int*)&random_data[4*__COUNTER__] )
+#define SEED (*(int *)&random_data[4 * __COUNTER__])
 static void apply_stage2(uint8_t *hash);
 
 // A potential option for something read as a secret,
-// reading the data here intentionally leads to 
+// reading the data here intentionally leads to
 // deterministic undefined behavior.
-static void _unused(){}
-
+static void _unused() {}
 
 // Hash MUST be 64 long
-static void apply_stage1(uint8_t *hash)
-{
+static void apply_stage1(uint8_t *hash) {
   uint8_t temp[64];
 
   for (int i = 0; i < STAGE1_PIN_ITERATIONS; i++) {
-    crypto_blake2b_keyed(
-        temp,
-        64,
-        stage1_key,
-        sizeof(stage1_key),
-        hash,
-        64);
+    crypto_blake2b_keyed(temp, 64, stage1_key, sizeof(stage1_key), hash, 64);
     memcpy(hash, temp, 64);
   }
   crypto_wipe(temp, 64);
 }
-
-
 
 bool validate_pin(const char pin[6]) {
   uint8_t hash[64];
@@ -81,13 +68,15 @@ void init_pin() {
   apply_stage2(pin_hash);
 }
 
-#define COMPILER_FUNC_OPTS ((uint8_t*[]) {\
-   (uint8_t*) &validate_pin,     \
-   (uint8_t*) &apply_stage1,     \
-   (uint8_t*) &apply_stage2,     \
-   (uint8_t*) &_unused,     \
-})
-#define RANDOM_FUNC COMPILER_FUNC_OPTS[SEED % (sizeof(COMPILER_FUNC_OPTS) / sizeof(void*))]
+#define COMPILER_FUNC_OPTS                                                     \
+  ((uint8_t *[]){                                                              \
+      (uint8_t *)&validate_pin,                                                \
+      (uint8_t *)&apply_stage1,                                                \
+      (uint8_t *)&apply_stage2,                                                \
+      (uint8_t *)&_unused,                                                     \
+  })
+#define RANDOM_FUNC                                                            \
+  COMPILER_FUNC_OPTS[SEED % (sizeof(COMPILER_FUNC_OPTS) / sizeof(void *))]
 
 // Hash MUST be 64 long
 static void apply_stage2(uint8_t *hash) {
@@ -96,28 +85,27 @@ static void apply_stage2(uint8_t *hash) {
   crypto_blake2b_ctx ctx;
   crypto_blake2b_keyed_init(&ctx, 64, stage2_key, sizeof(stage2_key));
 
+#ifdef __MSPM0L2228__
   crypto_blake2b_update(&ctx, hash, 64);
 
   int int_data[] = {
-    FACTORYREGION->BOOTCRC, // Crc of ALL board specific values
-    (int) (size_t) RANDOM_FUNC, // Location in memory
-    STAGE2_RAND_INT, // Random int from generate_secrets.
+      FACTORYREGION->BOOTCRC,   // Crc of ALL board specific values
+      (int)(size_t)RANDOM_FUNC, // Location in memory
+      STAGE2_RAND_INT,          // Random int from generate_secrets.
   };
-  crypto_blake2b_update(&ctx, (uint8_t*) int_data, sizeof(int_data));
-  
+  crypto_blake2b_update(&ctx, (uint8_t *)int_data, sizeof(int_data));
+
   // Different each reboot
   crypto_blake2b_update(&ctx, random_data, sizeof(random_data));
 
   // Part of the bootloader
-  crypto_blake2b_update(&ctx, (uint8_t*) 0, 64);
+  crypto_blake2b_update(&ctx, (uint8_t *)0, 64);
 
   // Compiler rng
   crypto_blake2b_update(&ctx, RANDOM_FUNC, 64);
 
-
+#endif
   crypto_blake2b_final(&ctx, temp);
   memcpy(hash, temp, 64);
   crypto_wipe(temp, 64);
 }
-
-

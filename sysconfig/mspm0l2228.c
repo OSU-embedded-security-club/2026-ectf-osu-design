@@ -32,6 +32,8 @@
 
 *****************************************************************************/
 
+#if false
+
 #include <stdint.h>
 #include <ti/devices/msp/msp.h>
 
@@ -170,3 +172,5 @@ void Default_Handler(void)
     while (1) {
     }
 }
+
+#endif
