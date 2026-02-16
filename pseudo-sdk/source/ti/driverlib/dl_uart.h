@@ -38,76 +38,70 @@ typedef struct {
 
 #define DL_UART_INTERRUPT_RX (1)
 
-__STATIC_INLINE void DL_UART_enablePower(UART_Regs *uart) { (void)uart; }
+#include <ti/driverlib/dl_log.h>
 
-__STATIC_INLINE void DL_UART_reset(UART_Regs *uart) { (void)uart; }
+void __dl_uart_poll(void);
 
-__STATIC_INLINE void DL_UART_transmitDataBlocking(UART_Regs *uart,
-                                                  uint8_t data) {
-  (void)uart;
-  (void)data;
+void DL_UART_enablePower(UART_Regs *uart);
+
+__STATIC_INLINE void DL_UART_reset(UART_Regs *uart) {
+  DL_LOG_DEBUG("DL_UART_reset: %p", uart);
 }
 
-__STATIC_INLINE uint8_t DL_UART_receiveData(const UART_Regs *uart) {
-  (void)uart;
-  return 0;
-}
-
-__STATIC_INLINE uint8_t DL_UART_receiveDataBlocking(const UART_Regs *uart) {
-  (void)uart;
-  return 0;
-}
+void DL_UART_transmitDataBlocking(UART_Regs *uart, uint8_t data);
+uint8_t DL_UART_receiveData(const UART_Regs *uart);
+uint8_t DL_UART_receiveDataBlocking(const UART_Regs *uart);
 
 __STATIC_INLINE void DL_UART_clearInterruptStatus(UART_Regs *uart,
                                                   uint32_t status) {
-  (void)uart;
-  (void)status;
+  DL_LOG_DEBUG("DL_UART_clearInterruptStatus: %p, status: 0x%08x", uart,
+               status);
 }
 
 __STATIC_INLINE void DL_UART_setClockConfig(UART_Regs *uart,
                                             DL_UART_ClockConfig *config) {
-  (void)uart;
-  (void)config;
+  DL_LOG_DEBUG("DL_UART_setClockConfig: %p", uart);
 }
 
 __STATIC_INLINE void DL_UART_init(UART_Regs *uart, DL_UART_Config *config) {
-  (void)uart;
-  (void)config;
+  DL_LOG_DEBUG("DL_UART_init: %p", uart);
 }
 
 __STATIC_INLINE void DL_UART_setOversampling(UART_Regs *uart, uint32_t rate) {
-  (void)uart;
-  (void)rate;
+  DL_LOG_DEBUG("DL_UART_setOversampling: %p, rate: %u", uart, rate);
 }
 
 __STATIC_INLINE void DL_UART_setBaudRateDivisor(UART_Regs *uart, uint32_t ibrd,
                                                 uint32_t fbrd) {
-  (void)uart;
-  (void)ibrd;
-  (void)fbrd;
+  DL_LOG_DEBUG("DL_UART_setBaudRateDivisor: %p, ibrd: %u, fbrd: %u", uart, ibrd,
+               fbrd);
 }
 
 __STATIC_INLINE void DL_UART_enableInterrupt(UART_Regs *uart,
                                              uint32_t interrupt) {
-  (void)uart;
-  (void)interrupt;
+  DL_LOG_DEBUG("DL_UART_enableInterrupt: %p, interrupt: 0x%08x", uart,
+               interrupt);
 }
 
-__STATIC_INLINE void DL_UART_enableFIFOs(UART_Regs *uart) { (void)uart; }
+__STATIC_INLINE void DL_UART_enableFIFOs(UART_Regs *uart) {
+  DL_LOG_DEBUG("DL_UART_enableFIFOs: %p", uart);
+}
 
 __STATIC_INLINE void DL_UART_setRXFIFOThreshold(UART_Regs *uart,
                                                 uint32_t threshold) {
-  (void)uart;
-  (void)threshold;
+  DL_LOG_DEBUG("DL_UART_setRXFIFOThreshold: %p, threshold: %u", uart,
+               threshold);
 }
 
 __STATIC_INLINE void DL_UART_setTXFIFOThreshold(UART_Regs *uart,
                                                 uint32_t threshold) {
-  (void)uart;
-  (void)threshold;
+  DL_LOG_DEBUG("DL_UART_setTXFIFOThreshold: %p, threshold: %u", uart,
+               threshold);
 }
 
-__STATIC_INLINE void DL_UART_enable(UART_Regs *uart) { (void)uart; }
+__STATIC_INLINE void DL_UART_enable(UART_Regs *uart) {
+  DL_LOG_DEBUG("DL_UART_enable: %p", uart);
+}
 
 #ifdef __cplusplus
 }

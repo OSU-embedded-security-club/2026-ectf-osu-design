@@ -8,18 +8,22 @@
 extern "C" {
 #endif
 
-__STATIC_INLINE void DL_GPIO_reset(GPIO_Regs *gpio) { (void)gpio; }
+#include <ti/driverlib/dl_log.h>
 
-__STATIC_INLINE void DL_GPIO_enablePower(GPIO_Regs *gpio) { (void)gpio; }
+__STATIC_INLINE void DL_GPIO_reset(GPIO_Regs *gpio) {
+  DL_LOG_DEBUG("DL_GPIO_reset: %p", gpio);
+}
+
+__STATIC_INLINE void DL_GPIO_enablePower(GPIO_Regs *gpio) {
+  DL_LOG_DEBUG("DL_GPIO_enablePower: %p", gpio);
+}
 
 __STATIC_INLINE void DL_GPIO_clearPins(GPIO_Regs *gpio, uint32_t pins) {
-  (void)gpio;
-  (void)pins;
+  DL_LOG_DEBUG("DL_GPIO_clearPins: %p, pins: 0x%08x", gpio, pins);
 }
 
 __STATIC_INLINE void DL_GPIO_enableOutput(GPIO_Regs *gpio, uint32_t pins) {
-  (void)gpio;
-  (void)pins;
+  DL_LOG_DEBUG("DL_GPIO_enableOutput: %p, pins: 0x%08x", gpio, pins);
 }
 
 /* Common GPIO defines/functions used in ti_msp_dl_config.c */
@@ -42,14 +46,16 @@ __STATIC_INLINE void DL_GPIO_enableOutput(GPIO_Regs *gpio, uint32_t pins) {
 
 __STATIC_INLINE void DL_GPIO_initPeripheralOutputFunction(uint32_t iomux,
                                                           uint32_t func) {
-  (void)iomux;
-  (void)func;
+  DL_LOG_DEBUG(
+      "DL_GPIO_initPeripheralOutputFunction: iomux: 0x%08x, func: 0x%08x",
+      iomux, func);
 }
 
 __STATIC_INLINE void DL_GPIO_initPeripheralInputFunction(uint32_t iomux,
                                                          uint32_t func) {
-  (void)iomux;
-  (void)func;
+  DL_LOG_DEBUG(
+      "DL_GPIO_initPeripheralInputFunction: iomux: 0x%08x, func: 0x%08x", iomux,
+      func);
 }
 
 #ifdef __cplusplus

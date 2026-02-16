@@ -36,6 +36,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <ti/driverlib/dl_wfi.h>
+
 #include <ti/driverlib/dl_adc12.h>
 #include <ti/driverlib/dl_aes.h>
 #include <ti/driverlib/dl_aesadv.h>

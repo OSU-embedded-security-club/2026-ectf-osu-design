@@ -55,7 +55,7 @@ target_include_directories(monocypher PUBLIC
 #####################
 # Create Executable #
 #####################
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c)
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.c pseudo-sdk/source/*.c)
 
 add_executable(
     hsm
