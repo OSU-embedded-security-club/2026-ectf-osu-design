@@ -1,0 +1,72 @@
+version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
+]
+
+[[package]]
+name = "ectf26-design"
+version = "2026.0+example"
+source = { editable = "." }
+dependencies = [
+    { name = "loguru" },
+    { name = "pymonocypher" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru" },
+    { name = "pymonocypher", specifier = ">=4.0.2.6" },
+]
+
+[package.metadata.requires-dev]
+dev = []
+
+[[package]]
+name = "loguru"
+version = "0.7.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559, upload-time = "2024-12-06T11:20:56.608Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c", size = 61595, upload-time = "2024-12-06T11:20:54.538Z" },
+]
+
+[[package]]
+name = "pymonocypher"
+version = "4.0.2.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a0/d3/ae2626b9c789672ad025290b8936f1cbb3e96ae6a34ee1c2ecd0b21585d5/pymonocypher-4.0.2.6.tar.gz", hash = "sha256:0b916b6e2d7c13f4eb90765dc733440761665f763532b070ef16af05bb52b38a", size = 450444, upload-time = "2025-12-02T15:57:32.067Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/b5/0607684ae620c2587bbb384bf107570cec4b6e41e120ef73be2ea850ef69/pymonocypher-4.0.2.6-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:3ef7028ac3e3ff40369611d1e154e7186845d02433df2192e042fd0972804025", size = 192138, upload-time = "2025-12-02T15:57:14.721Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/76/03842d500ba7b9bdfe44f88dca0a3e11c37bc808bb4f19c988b2a159baad/pymonocypher-4.0.2.6-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ae4c72927ebce806ab0472f4284fd399c92d65d1cfc9959167a2918268bdc1a7", size = 453188, upload-time = "2025-12-02T15:57:16.383Z" },
+    { url = "https://files.pythonhosted.org/packages/71/7b/b22baff959154954688ef728a2ac7951a9c4639902b76adff03e3f3feefe/pymonocypher-4.0.2.6-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a302b0a8736da2cd3e90e55b08dc5b283dd1d79b8061e2cb1b3fb83d68760b95", size = 467106, upload-time = "2025-12-02T15:57:17.8Z" },
+    { url = "https://files.pythonhosted.org/packages/44/ab/46cdc84bed48d46070d9855e6fd21b8eba924ffd63a0caf47dd028fc2063/pymonocypher-4.0.2.6-cp312-cp312-win_amd64.whl", hash = "sha256:09e2015dfb3a4152bf21e7407ab5535041a35c3cef4ff6d2f872389da925493e", size = 87408, upload-time = "2025-12-02T15:57:19.035Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/a1/3e1a159210cabb4412c61d5ff1ec891a455b27d13ca5e63cd356af701a78/pymonocypher-4.0.2.6-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:161b760a4a4a49dbea04bb012fb48ce8b2b0dea9270890ddc5f1962452cdba24", size = 190099, upload-time = "2025-12-02T15:57:20.145Z" },
+    { url = "https://files.pythonhosted.org/packages/31/4e/bd331f85b39ab6f4a019f15136ce0d00cd8922523ba95d53c9982f896f8e/pymonocypher-4.0.2.6-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:809e8c0a37dc17cf7ab9a1ace937916a4a99a9102efbeeb83db4a8731e1c8f1b", size = 443679, upload-time = "2025-12-02T15:57:21.617Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/15/a627641c36bf00cc3981e0699cfd64dc77deaf6aa5eb7f394d256fb9639f/pymonocypher-4.0.2.6-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:eef52b588657b21c65892b9fa2f8c6640ee879f73a1204852be865604ebec93d", size = 458479, upload-time = "2025-12-02T15:57:23.775Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/49/f529832792ef720b2bd2dfeec0ea6f936f826424fadcd559313c61ab3897/pymonocypher-4.0.2.6-cp313-cp313-win_amd64.whl", hash = "sha256:30b67f636d9e706b50f3ff941542d22bf7ce004be2ed9f2525ad34f0f76f6481", size = 86698, upload-time = "2025-12-02T15:57:25.364Z" },
+    { url = "https://files.pythonhosted.org/packages/12/36/bd23aa215a28c24675a0dab650087808304ad1f78ed568bfafbeb8597c46/pymonocypher-4.0.2.6-cp314-cp314-macosx_10_15_universal2.whl", hash = "sha256:2b4ed56d9fee4a1797adb0fead7b464ae23ad05ef6e1003812da69ec1519f201", size = 191044, upload-time = "2025-12-02T15:57:26.513Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/37/3c6e3dfe90a36d30bc04b9173d30251c86aa8ecaa8da8b35959542f5257b/pymonocypher-4.0.2.6-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:06ece9a78cce4f7d8e20f20fd10275052d336b58c27d2ba756b43644884a7879", size = 445080, upload-time = "2025-12-02T15:57:27.898Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/db/53c244b104e2c5471645fb15a9413f36ef5e9f6105a8d3a46fb05020fd39/pymonocypher-4.0.2.6-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1222faead042e95e4ade6346c6442c3a3bb7b8c840b42d4b0361503afbe7614b", size = 457079, upload-time = "2025-12-02T15:57:29.222Z" },
+    { url = "https://files.pythonhosted.org/packages/96/cd/24dc6ba3fe3fcc042bb54d22054dfb6839b4d5b8a79c7bcafc6a3a3f6b35/pymonocypher-4.0.2.6-cp314-cp314-win_amd64.whl", hash = "sha256:86867bcd0f987c3d3da93a1f4780ead370ee804737a8875ff2b116f01877a57c", size = 89220, upload-time = "2025-12-02T15:57:30.817Z" },
+]
+
+[[package]]
+name = "win32-setctime"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/8f/705086c9d734d3b663af0e9bb3d4de6578d08f46b1b101c2442fd9aecaa2/win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0", size = 4867, upload-time = "2024-12-07T15:28:28.314Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/07/c6fe3ad3e685340704d314d765b7912993bcb8dc198f0e7a89382d37974b/win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390", size = 4083, upload-time = "2024-12-07T15:28:26.465Z" },
+]
