@@ -10,6 +10,7 @@
 #include "message/listen.h"
 #include "message/interrogate.h"
 #include "message/receive.h"
+#include "pin_utils.h"
 
 
 //! Program Entrypoint
@@ -17,6 +18,8 @@ int main(void) {
     
     // Configure System
     SYSCFG_DL_init();
+    // Get the insecure stage1 hash rehashed as quickly as possible
+    init_pin();
 
     // Setup LED pin
     DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);

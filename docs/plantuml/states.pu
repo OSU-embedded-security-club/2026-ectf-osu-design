@@ -1,0 +1,28 @@
+@startuml
+SystemInit: Initalizes Device using Sysconfig
+WaitingForHost: Waiting for command from HOST UART
+
+ListFiles: Lists Files on HSM
+ReadFile: Reads File off HSM
+WriteFile: Writes File to HSM
+Interrogate: Lists Files on Neighboring HSM
+ReceiveFile: Recieves File from Neighboring HSM
+Listen: Listens for Interrogate or ReceiveFile from Neighboring HSM
+
+SystemInit --> WaitingForHost
+
+WaitingForHost --> ListFiles
+WaitingForHost --> ReadFile
+WaitingForHost --> WriteFile
+WaitingForHost --> Interrogate
+WaitingForHost --> ReceiveFile
+WaitingForHost --> Listen
+
+
+ListFiles --> WaitingForHost
+ReadFile --> WaitingForHost
+WriteFile --> WaitingForHost
+Interrogate --> WaitingForHost
+ReceiveFile --> WaitingForHost
+Listen --> WaitingForHost
+@enduml

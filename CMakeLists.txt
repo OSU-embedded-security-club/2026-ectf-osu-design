@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.29)
 
-set(CMAKE_SYSTEM_NAME Generic)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-
 # TODO: Remove this for during attack/handoff
 add_compile_definitions(DEBUG)
 
+
+set(CMAKE_SYSTEM_NAME Generic)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(PROCESSOR_OPTIONS
     -D__MSPM0L2228__
@@ -136,9 +135,23 @@ if(Doxygen_FOUND)
 
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/docs/index.md)
 
+    set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml.jar)
+    set(DOXYGEN_PLANTUMLFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/plantuml)
+
+    set(DOXYGEN_DOTFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/dotfiles)
+    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+    set(DOXYGEN_INTERACTIVE_SVG YES)
+
+    set(DOXYGEN_CALL_GRAPH YES)
+    set(DOXYGEN_CALLER_GRAPH YES)
+    set(DOXYGEN_CLASS_DIAGRAMS YES)
+    set(DOXYGEN_TYPEDEF_HIDES_STRUCT YES)
+    set(DOXYGEN_UML_LOOK YES)
+
     set(DOXYGEN_EXTRACT_ALL YES)
 
     doxygen_add_docs(docs # Target
+        ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/docs
     )

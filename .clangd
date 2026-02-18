@@ -1,8 +1,6 @@
 CompileFlags:
     BuiltinHeaders: QueryDriver
-    Add: 
-      - "--target=thumb"
-      - "-I/ti/ti-cgt-armllvm_4.0.2.LTS/include/c/"
+    Add: [--target=thumb]
     CompilationDatabase: build
 
 Completion:

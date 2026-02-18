@@ -1,0 +1,13 @@
+@startuml
+actor Operator1 as op1
+participant HSM1
+participant HSM2
+actor Operator2 as op2
+
+op1 -> HSM1 : Listen
+op2 -> HSM2 : Receive
+
+HSM2 -> HSM1 : Recieve Command
+HSM1 -> HSM2 : X25519 Public Key
+HSM1 -> HSM2 : Encrypted file_slot_entry_t
+@enduml
