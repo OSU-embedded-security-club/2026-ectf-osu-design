@@ -1,7 +1,12 @@
 # TODO: Put in a more competition ready format
 
+import argparse
+import pathlib
+import json
+
 import os, struct, hashlib, time
 from os.path import join, dirname, abspath
+import jinja2
 
 SOURCE_DIR = dirname(abspath(__file__))
 SECRETS_BASE = join(SOURCE_DIR, "include", "secrets.h.base")
@@ -41,16 +46,85 @@ def make_c_bytes(data):
     return "{" + ", ".join(f"0x{b:02x}" for b in data) + "}"
 
 
-def main():
-    base = open(SECRETS_BASE).read()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser("Secrets Generator")
 
-    f = open(SECRETS_OUT, "w")
-    f.write(base)
-    f.write(f"\n#define STAGE1_PIN_ITERATIONS {STAGE1_PIN_ITERATIONS}")
-    f.write(f"\n#define STAGE1_KEY {make_c_bytes(STAGE1_KEY)}")
-    f.write(f"\n#define STAGE1_PADDING {make_c_bytes(STAGE1_PADDING)}")
-    f.write(f"\n#define STAGE2_RAND_INT {STAGE2_RAND_INT}U")
-    f.write(f"\n\n#define STAGE1_PIN_HASH {make_c_bytes(hash_pin(PIN))}")
+    parser.add_argument(
+        "secrets",
+        type=pathlib.Path,
+        help="Path to secrets file"
+    )
+
+    parser.add_argument(
+        "hsm_pin",
+        type=str,
+        help="User PIN for the HSM"
+    )
+
+    parser.add_argument(
+        "permissions",
+        type=str,
+        help="List of colon-separated permissions. E.g., \"1234=R--:4321=RWC\""
+    )
+
+    return parser.parse_args()
+
+def main():
+
+    args = parse_args()
+
+    # Load Secrets
+    secrets: dict
+    with open(args.secrets) as reader:
+        secrets = json.load(reader)
+
+    # Create HSM Pin Hash
+
+    # Create HSM Permissions
+    groups: dict[str, dict[str, str]] = dict()
+    for permission_str in args.permissions.split(':'):
+        group_id: str
+        permissions: str
+        group_id, permissions = permission_str.split('=')
+        
+        groups[group_id] = {
+            "read": {},
+            "write": {},
+            "transfer": {}
+        }
+        groups[group_id]["read"]["private"] = secrets[group_id]["read"]["private"] if permissions[0] == 'R' else None
+        groups[group_id]["write"]["private"] = secrets[group_id]["write"]["private"] if permissions[1] == 'W' else None
+        groups[group_id]["transfer"]["private"] = secrets[group_id]["transfer"]["private"] if permissions[2] == "C" else None
+
+        groups[group_id]["read"]["public"] = secrets[group_id]["read"]["public"]
+        groups[group_id]["write"]["public"] = secrets[group_id]["write"]["public"]
+        groups[group_id]["transfer"]["public"] = secrets[group_id]["transfer"]["public"]
+
+    jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader("include"))
+    
+    jinja_file = jinja_env.get_template("secrets.h.j2")
+
+    print(args.hsm_pin)
+
+    with open(SECRETS_OUT, 'w') as out:
+        out.write(jinja_file.render(
+            STAGE1_PIN_ITERATIONS=STAGE1_PIN_ITERATIONS,
+            STAGE1_KEY=STAGE1_KEY.hex(),
+            STAGE1_PADDING=STAGE1_PADDING.hex(),
+            STAGE2_RAND_INT=STAGE2_RAND_INT,
+            STAGE1_PIN_HASH=hash_pin(args.hsm_pin).hex(),
+            groups=groups
+        ))
+
+    # base = open(SECRETS_BASE).read()
+
+    # f = open(SECRETS_OUT, "w")
+    # f.write(base)
+    # f.write(f"\n#define STAGE1_PIN_ITERATIONS {STAGE1_PIN_ITERATIONS}")
+    # f.write(f"\n#define STAGE1_KEY {make_c_bytes(STAGE1_KEY)}")
+    # f.write(f"\n#define STAGE1_PADDING {make_c_bytes(STAGE1_PADDING)}")
+    # f.write(f"\n#define STAGE2_RAND_INT {STAGE2_RAND_INT}U")
+    # f.write(f"\n\n#define STAGE1_PIN_HASH {make_c_bytes(hash_pin(PIN))}")
 
 
 if __name__ == "__main__":
