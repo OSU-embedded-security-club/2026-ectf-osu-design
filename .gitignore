@@ -120,3 +120,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+__pycache__
+*.egg-info
+.venv
+*.secrets
