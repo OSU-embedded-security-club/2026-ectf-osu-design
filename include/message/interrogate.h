@@ -18,6 +18,32 @@
 #include "utils.h"
 
 /**
+ * @brief Checks if the communication channel is open and ready for secure
+ * communication.
+ *
+ * @return true if the channel is open and ready, false otherwise
+ */
+bool channel_open(void);
+
+/**
+ * @brief Sends data securely over the communication channel, ensuring
+ * confidentiality and integrity.
+ *
+ * @param data Pointer to the data to be sent
+ * @param length Length of the data in bytes
+ */
+void secure_send(const uint8_t *const data, const size_t length);
+
+/**
+ * @brief Receives data securely from the communication channel, ensuring
+ * confidentiality and integrity.
+ *
+ * @param buffer Pointer to the buffer where received data will be stored
+ * @param length Length of the buffer in bytes
+ */
+void secure_receive(uint8_t *const buffer, const size_t length);
+
+/**
  * @brief Responds to Interrogate Request
  *
  * @param[in] header    Message Header

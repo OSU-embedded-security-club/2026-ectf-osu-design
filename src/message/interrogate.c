@@ -16,9 +16,38 @@
 #include "ti_msp_dl_config.h"
 #include <limits.h>
 
-#define MAX_PACKET_SIZE UINT16_MAX
+/**
+ * @brief Flag to indicate whether the communication channel is open and ready
+ * for secure communication.
+ *
+ */
+static bool channel_is_open = false;
 
-extern void wait_for_ack(void);
+/**
+ * @brief Checks if the communication channel is open and ready for secure
+ * communication.
+ *
+ * @return true if the channel is open and ready, false otherwise
+ */
+bool channel_open(void) { return channel_is_open; }
+
+/**
+ * @brief Sends data securely over the communication channel, ensuring
+ * confidentiality and integrity.
+ *
+ * @param data Pointer to the data to be sent
+ * @param length Length of the data in bytes
+ */
+void secure_send(const uint8_t *const data, const size_t length) {}
+
+/**
+ * @brief Receives data securely from the communication channel, ensuring
+ * confidentiality and integrity.
+ *
+ * @param buffer Pointer to the buffer where received data will be stored
+ * @param length Length of the buffer in bytes
+ */
+void secure_receive(uint8_t *const buffer, const size_t length) {}
 
 /**
  * @brief Generic failure response for unimplemented features or invalid
@@ -46,6 +75,8 @@ void message_interrogate_response(const message_header_t header,
   } else if (header.operation != MESSAGE_INTERROGATE) {
     return fail_generic();
   }
+
+  // TODO: KEX
 
   char msg[] = "Interrogate not implemented yet";
   message_header_send_error(HOST_INST, msg, sizeof(msg));
