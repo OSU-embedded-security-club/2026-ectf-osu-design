@@ -1,9 +1,15 @@
 #pragma once
 
 #include "message/header.h"
+#include "utils.h"
+
 /**
  * @brief Responds to Read Request
  *
  * @param[in] header    Message Header
+ * @param[in] rx_len    Length of the received payload
+ * @param[in] payload   Pointer to the received payload
  */
-void message_read_response(message_header_t header);
+NOTNULL()
+void message_read_response(const message_header_t header, const size_t rx_len,
+                           const uint8_t *const payload);
