@@ -5,7 +5,7 @@ add_compile_definitions(DEBUG)
 
 
 set(CMAKE_SYSTEM_NAME Generic)
-
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(PROCESSOR_OPTIONS
@@ -111,8 +111,17 @@ add_custom_command(TARGET hsm POST_BUILD
 ###########
 
 file(GLOB_RECURSE LINT_FILES CONFIGURE_DEPENDS src/*.h src/*.c)
-add_custom_target(lint ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} ${LINT_FILES})
-add_custom_target(lint-ci ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR} --warnings-as-errors=* ${LINT_FILES})
+add_custom_target(lint
+    ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR}
+    --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+    ${LINT_FILES}
+)
+add_custom_target(lint-ci
+    ${TI_LLVM}/bin/tiarmclang-tidy -p ${CMAKE_CURRENT_BINARY_DIR}
+    --warnings-as-errors=*z
+    --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+    ${LINT_FILES}
+)
 
 ##############
 # Build Docs #
