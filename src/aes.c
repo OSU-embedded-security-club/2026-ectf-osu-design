@@ -13,9 +13,9 @@
  */
 
 #include "aes.h"
+#include "utils.h"
 
 #include <stdint.h>
-#include <string.h>
 #include <ti/devices/msp/msp.h>
 #include <ti/driverlib/dl_aesadv.h>
 #include <ti/driverlib/driverlib.h>
@@ -40,22 +40,22 @@ int aes_init(void) {
 /**
  * @brief Encrypt data using AES-CTR-256 with hardware acceleration.
  *
- * @param in Input data to be encrypted
- * @param len Length of input data in bytes
- * @param out Output buffer for encrypted data
- * @param key AES encryption key
- * @param iv Initialization vector
+ * @param[in] in Input data to be encrypted
+ * @param[in] len Length of input data in bytes
+ * @param[out] out Output buffer for encrypted data and authentication tag
+ * @param[in] key AES encryption key
+ * @param[in] iv Initialization vector
  * @return int 0 on success, negative value on failure.
  */
 int aes_encrypt(const uint32_t *const in, const uint32_t len,
                 uint32_t *const out, const uint32_t *const key, uint8_t *iv) {
-  if (len % 16 != 0) {
-    return -1; // Length must be a multiple of AES block size (16 bytes)
+  if ((len == 0) || ((len % 16) != 0)) {
+    return -1;
   }
 
-  // TODO: Make this a different mode (GCM?)
+  // TODO: @mason3263 can you look at this idk if this is right
   const DL_AESADV_Config encrypt_config = {
-      .mode = DL_AESADV_MODE_CTR,
+      .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
       .direction = DL_AESADV_DIR_ENCRYPT,
       .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_32_BIT,
       .cfb_fbWidth = DL_AESADV_FB_WIDTH_128,
@@ -63,14 +63,14 @@ int aes_encrypt(const uint32_t *const in, const uint32_t len,
       .ccm_tagWidth = DL_AESADV_CCM_TAG_WIDTH_1_BYTE,
       .iv = iv,
       .nonce = NULL,
-      .lowerCryptoLength = 32,
+      .lowerCryptoLength = len / sizeof(uint32_t),
       .upperCryptoLength = 0,
       .aadLength = 0,
   };
 
-  DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_256_BIT);
-  DL_AESADV_setKeyAligned(AESADV, &key[0], DL_AESADV_KEY_SIZE_256_BIT);
-  DL_AESADV_initCTR(AESADV, &encrypt_config);
+  DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_128_BIT);
+  DL_AESADV_setKeyAligned(AESADV, &key[0], DL_AESADV_KEY_SIZE_128_BIT);
+  DL_AESADV_initGCM(AESADV, &encrypt_config);
 
   for (uint32_t i = 0; i < len; i += 4) {
     while (!DL_AESADV_isInputReady(AESADV)) {
@@ -84,28 +84,33 @@ int aes_encrypt(const uint32_t *const in, const uint32_t len,
     DL_AESADV_readOutputDataAligned(AESADV, &out[i]);
   }
 
-  return DL_AESADV_readInitializationVector(AESADV, iv);
+  uint32_t tagAligned[4] = {0};
+  DL_AESADV_readTAGAligned(AESADV, tagAligned);
+
+  return (int)DL_AESADV_readInitializationVector(AESADV, iv);
 }
 
 /**
  * @brief Decrypt data using AES-CTR-256 with hardware acceleration.
  *
- * @param in Input data to be decrypted
- * @param len Length of input data in bytes
- * @param out Output buffer for decrypted data
- * @param key AES decryption key
- * @param iv Initialization vector
+ * @param[in] in Input data to be decrypted
+ * @param[in] len Length of input data in bytes
+ * @param[out] out Output buffer for decrypted data
+ * @param[in] key AES decryption key
+ * @param[in] iv Initialization vector
+ * @param[in] tag Authentication tag to verify integrity of the ciphertext
  * @return int 0 on success, negative value on failure.
  */
 int aes_decrypt(const uint32_t *const in, const uint32_t len,
-                uint32_t *const out, const uint32_t *const key, uint8_t *iv) {
-  if (len % 16 != 0) {
-    return -1; // Length must be a multiple of AES block size (16 bytes)
+                uint32_t *const out, const uint32_t *const key, uint8_t *iv,
+                const uint32_t *const tag) {
+  if ((len == 0) || ((len % 16) != 0)) {
+    return -1;
   }
 
-  // TODO: Make this a different mode (GCM?)
+  // TODO: @mason3263 can you look at this too
   const DL_AESADV_Config decrypt_config = {
-      .mode = DL_AESADV_MODE_CTR,
+      .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
       .direction = DL_AESADV_DIR_DECRYPT,
       .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_32_BIT,
       .cfb_fbWidth = DL_AESADV_FB_WIDTH_128,
@@ -113,14 +118,14 @@ int aes_decrypt(const uint32_t *const in, const uint32_t len,
       .ccm_tagWidth = DL_AESADV_CCM_TAG_WIDTH_1_BYTE,
       .iv = iv,
       .nonce = NULL,
-      .lowerCryptoLength = 32,
+      .lowerCryptoLength = len / sizeof(uint32_t),
       .upperCryptoLength = 0,
       .aadLength = 0,
   };
 
-  DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_256_BIT);
-  DL_AESADV_setKeyAligned(AESADV, &key[0], DL_AESADV_KEY_SIZE_256_BIT);
-  DL_AESADV_initCTR(AESADV, &decrypt_config);
+  DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_128_BIT);
+  DL_AESADV_setKeyAligned(AESADV, &key[0], DL_AESADV_KEY_SIZE_128_BIT);
+  DL_AESADV_initGCM(AESADV, &decrypt_config);
 
   for (uint32_t i = 0; i < len; i += 4) {
     while (!DL_AESADV_isInputReady(AESADV)) {
@@ -134,5 +139,11 @@ int aes_decrypt(const uint32_t *const in, const uint32_t len,
     DL_AESADV_readOutputDataAligned(AESADV, &out[i]);
   }
 
-  return DL_AESADV_readInitializationVector(AESADV, iv);
+  uint32_t readTag[4] = {0};
+  DL_AESADV_readTAGAligned(AESADV, readTag);
+  if (memcmp(tag, readTag, 16) != 0) {
+    return -1;
+  }
+
+  return (int)DL_AESADV_readInitializationVector(AESADV, iv);
 }
