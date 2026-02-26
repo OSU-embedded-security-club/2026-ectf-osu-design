@@ -62,14 +62,37 @@ void message_write_response(message_header_t header) {
     };
     async_uart_receive(&uart_ctx);
 
-    // TODO: Check Pin Hash
+    bool pin_valid = utils_verify_pin(write_header.pin, sizeof(write_header.pin));
+
+    utils_random_delay();
+
+    if(!pin_valid) {
+        const char msg[] = "Invalid PIN";
+    
+        delay_cycles(PIN_DELAY);
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
 
     // Find Group
     const group_t* group = utils_find_group(write_header.group_id);
-    
-    // Check Group Write Permission
-    if(!group->private.permissions.write) {
-        while(1) {}
+
+    if(group == 0 || !group->private.permissions.write) {
+        char msg[] = "HSM not provisioned for group";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
+
+    if(write_header.slot > NUM_SLOTS) {
+        char msg[] = "Invalid Slot Number";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
+
+    if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
+        char msg[] = "Invalid File Size";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
     }
 
     // Erase Flash
@@ -79,8 +102,6 @@ void message_write_response(message_header_t header) {
         DL_FlashCTL_unprotectSector(FLASHCTL, address, DL_FLASHCTL_REGION_SELECT_MAIN);
         DL_FlashCTL_eraseMemory(FLASHCTL, address, DL_FLASHCTL_COMMAND_SIZE_SECTOR);
         DL_FlashCTL_waitForCmdDone(FLASHCTL);
-
-        // TODO: Check for Flash errors
     }
 
     file_address_table_t fat;
@@ -105,6 +126,11 @@ void message_write_response(message_header_t header) {
         write_header.name,
         sizeof(char[32])
     );
+    memcpy(
+        signed_metadata.metadata.uuid,
+        write_header.file_uuid,
+        sizeof(uint8_t[16])
+    );
 
     // Calculate Padding
     uint8_t padding = 16 - write_header.file_length % 16;
@@ -122,7 +148,7 @@ void message_write_response(message_header_t header) {
     memcpy(read_pub_key, group->public.read_key, sizeof(uint8_t[32]));
 
     // 32bit for alignment purposes
-    uint32_t secret[16];
+    uint32_t secret[8];
     random_fill_buffer((uint8_t*) secret, sizeof(uint8_t[32]));
     
     // Generate x25519 vals

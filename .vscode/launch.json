@@ -14,7 +14,7 @@
         ],
         "runToEntryPoint": "main",
         "showDevDebugOutput": "none",
-        "deviceName": "mspm0l2228"
+        "deviceName": "mspm0l2228",
     },
   ]
 }

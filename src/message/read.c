@@ -50,10 +50,32 @@ void message_read_response(message_header_t header) {
     // ACK Host Command
     message_header_send_ack(HOST_INST);
 
-    // TODO: Check Pin
+    bool pin_valid = utils_verify_pin(pin, sizeof(pin));
+
+    utils_random_delay();
+
+    if(!pin_valid) {
+        const char msg[] = "Invalid PIN";
+    
+        delay_cycles(PIN_DELAY);
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
+
+    if(slot_number > NUM_SLOTS) {
+        char msg[] = "Invalid Slot Number";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
 
     const file_slot_entry_t* file = &SLOTS[slot_number];
     const group_t* group = utils_find_group(file->signed_metadata.metadata.group_id);
+
+    if(group == 0) {
+        char msg[] = "HSM not provisioned for file group";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
 
     uint16_t file_length = file->signed_metadata.metadata.file_size;
 
@@ -81,7 +103,7 @@ void message_read_response(message_header_t header) {
         sizeof(file->signed_metadata.metadata)
     );
 
-    // TODO: Random Pause
+    utils_random_delay();
 
     if(valid == -1) {
         // TODO: Error
@@ -97,7 +119,7 @@ void message_read_response(message_header_t header) {
     memcpy(file_pub_key, file->signed_metadata.metadata.encryption_public_key, sizeof(uint8_t[32]));
     memcpy(read_pub_key, group->public.read_key, sizeof(uint8_t[32]));
 
-    uint32_t aes_key[16];
+    uint32_t aes_key[8];
     crypto_x25519(secret_key, group->private.read_key, file_pub_key);
     crypto_blake2b((uint8_t*) aes_key, sizeof(aes_key), (uint8_t*) keys, sizeof(keys));
 
@@ -198,25 +220,27 @@ void message_read_response(message_header_t header) {
         uart_buffer = uart_buffer->next;
     }
 
-        // Check GCM Tag
-        uint32_t gcm_tag[4];
-        DL_AESADV_readTAGAligned(AESADV, gcm_tag);
-        int verify = crypto_verify16((uint8_t*) gcm_tag, (uint8_t*) file->signed_metadata.metadata.file_signature);
+    // Check GCM Tag
+    uint32_t gcm_tag[4];
+    DL_AESADV_readTAGAligned(AESADV, gcm_tag);
+    int verify = crypto_verify16((uint8_t*) gcm_tag, (uint8_t*) file->signed_metadata.metadata.file_signature);
 
-        if(verify == -1) {
-            while(1) {}
-        }
-        
+    utils_random_delay();
 
-        uint16_t padding = padded_length - file_length;
-        DL_DMA_setSrcAddr(DMA, UART_DMA, (uint32_t) uart_buffer->buffer);
-        DL_DMA_setTransferSize(DMA, UART_DMA, ((uart_buffer->length) - padding));
+    if(verify == -1) {
+        while(1) {}
+    }
+    
 
-        DL_DMA_enableChannel(DMA, UART_DMA);
-        while(DL_DMA_isChannelEnabled(DMA, UART_DMA));
+    uint16_t padding = padded_length - file_length;
+    DL_DMA_setSrcAddr(DMA, UART_DMA, (uint32_t) uart_buffer->buffer);
+    DL_DMA_setTransferSize(DMA, UART_DMA, ((uart_buffer->length) - padding));
 
-        message_header_receive_ack(HOST_INST);
+    DL_DMA_enableChannel(DMA, UART_DMA);
+    while(DL_DMA_isChannelEnabled(DMA, UART_DMA));
 
-        DL_UART_disableDMATransmitEvent(HOST_INST);
-        DL_AESADV_disablePower(AESADV);
+    message_header_receive_ack(HOST_INST);
+
+    DL_UART_disableDMATransmitEvent(HOST_INST);
+    DL_AESADV_disablePower(AESADV);
 }

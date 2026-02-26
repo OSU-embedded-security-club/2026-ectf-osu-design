@@ -75,8 +75,8 @@ void message_header_receive_ack(UART_Regs* uart) {
         message_header_send_debug(uart, msg, sizeof(msg));
     }
 
-    if(req.message_length != 0) {
-        const char msg[] = "ACK Length Error";
-        message_header_send_debug(uart, msg, sizeof(msg));
-    }
+    // if(req.message_length != 0) {
+    //     const char msg[] = "ACK Length Error";
+    //     message_header_send_debug(uart, msg, sizeof(msg));
+    // }
 }

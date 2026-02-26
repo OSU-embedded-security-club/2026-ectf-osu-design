@@ -36,6 +36,9 @@ typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))){
  * group.
  */
 typedef struct {
+    //! File UUID
+    uint8_t uuid[16];
+
     //! File Group ID
     uint16_t group_id;
 

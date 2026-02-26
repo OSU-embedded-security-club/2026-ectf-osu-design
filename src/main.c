@@ -13,8 +13,6 @@
 #include "pin_utils.h"
 
 
-
-
 //! Program Entrypoint
 int main(void) {
     
@@ -23,10 +21,6 @@ int main(void) {
 
     // Get the insecure stage1 hash rehashed as quickly as possible
     init_pin();
-
-    // Setup LED pin
-    DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);
-    DL_GPIO_enableOutput(GPIOB, DL_GPIO_PIN_14);
 
     DL_AESADV_disablePower(AESADV);
 
@@ -39,64 +33,72 @@ int main(void) {
     DL_UART_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
     DL_UART_enableInterrupt(HOST_INST, DL_UART_INTERRUPT_RX);
 
+    while(1) {
+        DL_WWDT_reset(WWDT0);
+    }
+
 }
 
-// void Reset_Handler() {
-//     while(1) {}
-// }
-
 void NMI_Handler()  {
-    while(1) {}
+    delay_cycles(PIN_DELAY);
+    char msg[] = "NMI";
+    message_header_send_error(HOST_INST, msg, sizeof(msg));
+    DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
 }
 
 void HardFault_Handler() {
-    while(1) {}
+    delay_cycles(PIN_DELAY);
+    char msg[] = "HardFault";
+    message_header_send_error(HOST_INST, msg, sizeof(msg));
+ 
+    DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
 }
-
-void SVC_Handler() {
-    while(1) {}
-}
-
-void PendSV_Handler() {
-    while(1) {}
-}
-
 
 
 void HOST_INST_IRQHandler(void) {
-    // TODO: Set watchdog to ensure reset if header gets hungup
-    message_header_t header;
-    int result = message_header_request(HOST_INST, &header);
+    // Watchdog will trigger after 8s
 
-    if(result != 0) {
+    DL_UART_IIDX interrupt = DL_UART_getPendingInterrupt(HOST_INST);
+
+    if(interrupt == DL_UART_IIDX_RX) {
+        message_header_t header;
+        int result = message_header_request(HOST_INST, &header);
+
+        if(result != 0) {
+            DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
+            return;
+        }
+
+        switch(header.operation) {
+            case MESSAGE_LIST:
+                message_list_response(header);
+                break;
+            case MESSAGE_READ:
+                message_read_response(header);
+                break;
+            case MESSAGE_WRITE:
+                message_write_response(header);
+                break;
+            case MESSAGE_RECEIVE:
+                message_recieve(header);
+                break;
+            case MESSAGE_INTERROGATE:
+                message_interrogate(header);
+                break;
+            case MESSAGE_LISTEN:
+                message_listen(header);
+                break;
+            default:
+                break;
+        };
+
+        // Don't Clear Interrupt until done processing
         DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-        return;
+    } else if (interrupt != DL_UART_IIDX_NO_INTERRUPT) {
+        delay_cycles(PIN_DELAY);
+        char msg[] = "UART Error";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     }
-
-    switch(header.operation) {
-        case MESSAGE_LIST:
-            message_list_response(header);
-            break;
-        case MESSAGE_READ:
-            message_read_response(header);
-            break;
-        case MESSAGE_WRITE:
-            message_write_response(header);
-            break;
-        case MESSAGE_RECEIVE:
-            message_recieve(header);
-            break;
-        case MESSAGE_INTERROGATE:
-            message_interrogate(header);
-            break;
-        case MESSAGE_LISTEN:
-            message_listen(header);
-            break;
-        default:
-            break;
-    };
-
-    // Don't Clear Interrupt until done processing
-    DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
 
 }

@@ -12,3 +12,5 @@
 
 #define CHUNK_SIZE 256
 #define WRITE_HEADER_SIZE 59
+
+#define PIN_DELAY 4 * 32000000

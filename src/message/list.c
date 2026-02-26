@@ -12,9 +12,17 @@ void message_list_response(message_header_t header) {
 
     message_header_send_ack(HOST_INST);
 
-    bool authenticated = utils_verify_pin(pin, sizeof(pin));
+    bool pin_valid = utils_verify_pin(pin, sizeof(pin));
 
-    // TODO check pin
+    utils_random_delay();
+
+    if(!pin_valid) {
+        const char msg[] = "Invalid PIN";
+    
+        delay_cycles(PIN_DELAY);
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
 
     message_list_response_t response;
     response.num_files = 0;

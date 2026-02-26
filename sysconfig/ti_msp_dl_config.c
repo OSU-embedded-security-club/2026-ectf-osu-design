@@ -53,6 +53,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_HOST_init();
     SYSCFG_DL_HSM_init();
     SYSCFG_DL_TRNG_init();
+    SYSCFG_DL_WWDT0_init();
 }
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
@@ -63,6 +64,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_UART_Main_reset(HOST_INST);
     DL_UART_Main_reset(HSM_INST);
     DL_TRNG_reset(TRNG);
+    DL_WWDT_reset(WWDT0_INST);
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
@@ -70,6 +72,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_UART_Main_enablePower(HOST_INST);
     DL_UART_Main_enablePower(HSM_INST);
     DL_TRNG_enablePower(TRNG);
+    DL_WWDT_enablePower(WWDT0_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
 
@@ -92,7 +95,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 {
 
 	//Low Power Mode is configured to be SLEEP0
-    DL_SYSCTL_setBORThreshold(DL_SYSCTL_BOR_THRESHOLD_LEVEL_0);
+    DL_SYSCTL_setBORThreshold(DL_SYSCTL_BOR_THRESHOLD_LEVEL_3);
 
     DL_SYSCTL_setSYSOSCFreq(DL_SYSCTL_SYSOSC_FREQ_BASE);
     DL_SYSCTL_setMCLKDivider(DL_SYSCTL_MCLK_DIVIDER_DISABLE);
@@ -130,12 +133,17 @@ SYSCONFIG_WEAK void SYSCFG_DL_HOST_init(void)
 
     /* Configure Interrupts */
     DL_UART_Main_enableInterrupt(HOST_INST,
+                                 DL_UART_MAIN_INTERRUPT_BREAK_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_FRAMING_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_NOISE_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_PARITY_ERROR |
                                  DL_UART_MAIN_INTERRUPT_RX);
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(HOST_INST);
-    DL_UART_Main_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_FULL);
-    DL_UART_Main_setTXFIFOThreshold(HOST_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
+    DL_UART_Main_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
+    DL_UART_Main_setTXFIFOThreshold(HOST_INST, DL_UART_TX_FIFO_LEVEL_ONE_ENTRY);
 
     DL_UART_Main_enable(HOST_INST);
 }
@@ -169,12 +177,17 @@ SYSCONFIG_WEAK void SYSCFG_DL_HSM_init(void)
 
     /* Configure Interrupts */
     DL_UART_Main_enableInterrupt(HSM_INST,
+                                 DL_UART_MAIN_INTERRUPT_BREAK_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_FRAMING_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_NOISE_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR |
+                                 DL_UART_MAIN_INTERRUPT_PARITY_ERROR |
                                  DL_UART_MAIN_INTERRUPT_RX);
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(HSM_INST);
-    DL_UART_Main_setRXFIFOThreshold(HSM_INST, DL_UART_RX_FIFO_LEVEL_FULL);
-    DL_UART_Main_setTXFIFOThreshold(HSM_INST, DL_UART_TX_FIFO_LEVEL_EMPTY);
+    DL_UART_Main_setRXFIFOThreshold(HSM_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
+    DL_UART_Main_setTXFIFOThreshold(HSM_INST, DL_UART_TX_FIFO_LEVEL_ONE_ENTRY);
 
     DL_UART_Main_enable(HSM_INST);
 }
@@ -190,4 +203,27 @@ SYSCONFIG_WEAK void SYSCFG_DL_TRNG_init(void)
 
     DL_TRNG_setDecimationRate(TRNG, DL_TRNG_DECIMATION_RATE_8);
 }
+
+SYSCONFIG_WEAK void SYSCFG_DL_WWDT0_init(void)
+{
+    /*
+     * Initialize WWDT0 in Watchdog mode with following settings
+     *   Watchdog Source Clock = (LFCLK Freq) / (WWDT Clock Divider)
+     *                         = 32768Hz / 1 = 32.77 kHz
+     *   Watchdog Period       = (WWDT Clock Divider) ∗ (WWDT Period Count) / 32768Hz
+     *                         = 1 * 2^18 / 32768Hz = 8.00 s
+     *   Window0 Closed Period = (WWDT Period) * (Window0 Closed Percent)
+     *                         = 8.00 s * 0% = 0.00 s
+     *   Window1 Closed Period = (WWDT Period) * (Window1 Closed Percent)
+     *                         = 8.00 s * 0% = 0.00 s
+     */
+    DL_WWDT_initWatchdogMode(WWDT0_INST, DL_WWDT_CLOCK_DIVIDE_1,
+        DL_WWDT_TIMER_PERIOD_18_BITS, DL_WWDT_STOP_IN_SLEEP,
+        DL_WWDT_WINDOW_PERIOD_0, DL_WWDT_WINDOW_PERIOD_0);
+
+    /* Set Window0 as active window */
+    DL_WWDT_setActiveWindow(WWDT0_INST, DL_WWDT_WINDOW0);
+
+}
+
 

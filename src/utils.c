@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "random.h"
 #include "pin_utils.h"
 
 bool utils_verify_pin(uint8_t* pin, size_t pin_length) {
@@ -41,4 +42,14 @@ const group_t* utils_find_group(uint16_t group_id) {
             return &groups[i];
         }
     }
+    return 0;
+}
+
+void utils_random_delay() {
+    uint16_t random_num;
+    random_fill_buffer((uint8_t*) &random_num, sizeof(random_num));
+    
+    // Num Between 0 - 4096
+    random_num = random_num >> 4;
+    delay_cycles(random_num);
 }

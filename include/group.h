@@ -33,7 +33,7 @@ typedef struct {
     group_permissions_t permissions;
     uint8_t read_key[32];
     uint8_t write_key[64];
-    uint8_t transfer_key[64];
+    uint8_t transfer_key[32];
 } group_private_t;
 
 /*!

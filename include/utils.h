@@ -49,6 +49,11 @@ void utils_receive_bytes(UART_Regs* uart, void* buffer, size_t num_bytes);
 
 const group_t* utils_find_group(uint16_t group_id);
 
+/**
+ * @brief Delay between 0 - 4096 Cycles
+ */
+void utils_random_delay();
+
 
 #ifdef DEBUG
 #define _WRITE_TO(FUNC, ...) do{                            \

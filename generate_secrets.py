@@ -106,8 +106,6 @@ def main():
     jinja_h_file = jinja_env.get_template("include/secrets.h.j2")
     jinja_c_file = jinja_env.get_template("src/secrets.c.j2")
 
-    print(args.hsm_pin)
-
     with open("include/secrets.h", 'w') as out:
         out.write(jinja_h_file.render(
             STAGE1_PIN_ITERATIONS=STAGE1_PIN_ITERATIONS,
@@ -120,7 +118,8 @@ def main():
 
     with open("src/secrets.c", 'w') as out:
         out.write(jinja_c_file.render(
-            groups = groups
+            groups = groups,
+            transfer_key = secrets["transfer_key"]
         ))
 
     # base = open(SECRETS_BASE).read()

@@ -123,6 +123,12 @@ extern "C" {
 
 
 
+/* Defines for WWDT */
+#define WWDT0_INST                                                       (WWDT0)
+#define WWDT0_INT_IRQN                                          (WWDT0_INT_IRQn)
+
+
+
 /* clang-format on */
 
 void SYSCFG_DL_init(void);
@@ -132,6 +138,7 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_HOST_init(void);
 void SYSCFG_DL_HSM_init(void);
 void SYSCFG_DL_TRNG_init(void);
+void SYSCFG_DL_WWDT0_init(void);
 
 
 #ifdef __cplusplus

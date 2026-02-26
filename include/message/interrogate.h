@@ -4,12 +4,17 @@
 #include "constants.h"
 #include "secrets.h"
 
-typedef struct {
-    uint8_t public_key[32];
+// Aligned to AES Block Size
+typedef struct __attribute__((aligned(16))) {
     uint16_t num_groups;
     uint16_t group_ids[8];
-    uint8_t signatures[8][32];
-} message_interrogate_verify_t;
+} message_interrogate_group_list_t;
+
+typedef struct {
+    uint32_t iv[4];
+    message_interrogate_group_list_t group_list;
+    uint32_t tag[4];
+} message_interrogate_group_list_encrypted_t;
 
 typedef struct __attribute__((packed)) {
     uint8_t slot;
@@ -17,10 +22,17 @@ typedef struct __attribute__((packed)) {
     char name[32];
 } message_interrogate_file_metadata_t;
 
+// Aligned to AES Block Size
 typedef struct __attribute__((aligned(16))) {
     uint32_t num_files;
     message_interrogate_file_metadata_t files[8];
 } message_interrogate_file_info_t;
+
+typedef struct {
+    uint32_t iv[4];
+    message_interrogate_file_info_t file_info;
+    uint32_t tag[4];
+} message_interrogate_file_info_encrypted_t;
 
 /**
  * @brief Responds to Interrogate Request

@@ -19,7 +19,7 @@ set(PROCESSOR_OPTIONS
     -mthumb
 )
 
-# set(OPTIMIZATION_OPTION -O3)
+set(OPTIMIZATION_OPTION -O0)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
@@ -38,9 +38,9 @@ project(hsm LANGUAGES C)
 # Compiler options
 add_compile_options(
     ${PROCESSOR_OPTIONS}
-    # ${OPTIMIZATION_OPTION}
+    ${OPTIMIZATION_OPTION}
     ${LTO_OPTION}
-    # ${DEBUG_OPTION}
+    ${DEBUG_OPTION}
 )
 
 # Include SDK Headers
