@@ -11,5 +11,5 @@
  * @param[in] payload   Pointer to the received payload
  */
 NOTNULL()
-void message_recieve(const message_header_t header, const size_t rx_len,
+void message_receive(const message_header_t header, const size_t rx_len,
                      const uint8_t *const payload);

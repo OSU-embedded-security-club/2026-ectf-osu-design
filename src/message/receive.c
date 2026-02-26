@@ -1,6 +1,6 @@
 #include "message/receive.h"
 
-void message_recieve(const message_header_t header, const size_t rx_len,
+void message_reeieve(const message_header_t header, const size_t rx_len,
                      const uint8_t *const payload) {
   // TODO: Implement receive response
 
