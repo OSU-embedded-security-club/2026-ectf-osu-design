@@ -1,6 +1,5 @@
 #pragma once
 
-#include "message/header.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,6 +100,21 @@ NOTNULL() bool utils_read_ack(UART_Regs *const uart);
 NOTNULL()
 void utils_receive_bytes_and_ack(UART_Regs *const uart, void *const buffer,
                                  const size_t length);
+
+/**
+ * @brief Copies data from src to dest in 4-byte chunks, randomizing the order
+ * of bytes within each chunk.
+ *
+ * @param[out] dest Destination buffer where the copied data will be stored.
+ * Must be large enough to hold n bytes.
+ * @param[in] src Source buffer from which data will be copied. Must contain at
+ * least n bytes.
+ * @param[in] n Number of bytes to copy from src to dest. If n is not a multiple
+ * of 4, the remaining bytes will be copied without randomization at the end.
+ */
+NOTNULL()
+void random_memcpy(void *restrict dest, const void *restrict src,
+                   const size_t n);
 
 #ifdef DEBUG
 #define _WRITE_TO(FUNC, ...)                                                   \

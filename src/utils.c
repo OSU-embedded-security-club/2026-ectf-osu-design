@@ -1,7 +1,8 @@
 #include "utils.h"
 #include "message/header.h"
 #include "pin_utils.h"
-#include "ti_msp_dl_config.h"
+#include "rng.h"
+#include <monocypher.h>
 
 bool utils_verify_pin(const uint8_t *const pin, const size_t pin_length) {
   if (pin_length != 6) {
@@ -105,8 +106,10 @@ void utils_send_packet(UART_Regs *const uart, const uint8_t msg_type,
 
   utils_send_bytes(uart, &magic, sizeof(magic));
 
-  const message_header_t header = {.operation = msg_type,
-                                   .message_length = length};
+  const message_header_t header = {
+      .operation = (char)msg_type,
+      .message_length = length,
+  };
 
   utils_send_bytes(uart, &header, sizeof(header));
 
@@ -121,4 +124,47 @@ void utils_send_packet(UART_Regs *const uart, const uint8_t msg_type,
     utils_send_bytes_and_ack(uart, buffer, length);
     utils_send_ack(uart);
   }
+}
+
+void random_memcpy(void *dest, const void *src, const size_t n) {
+  const uint8_t *const temp_src = (const uint8_t *)src;
+  uint8_t *const temp_dest = (uint8_t *)dest;
+
+  // Order of the 4 bytes in each 32-bit word is determined by this map.
+  const uint8_t map[24][4] = {
+      {0, 1, 2, 3}, {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},
+      {0, 3, 2, 1}, {1, 0, 2, 3}, {1, 0, 3, 2}, {1, 2, 0, 3}, {1, 2, 3, 0},
+      {1, 3, 0, 2}, {1, 3, 2, 0}, {2, 0, 1, 3}, {2, 0, 3, 1}, {2, 1, 0, 3},
+      {2, 1, 3, 0}, {2, 3, 0, 1}, {2, 3, 1, 0}, {3, 0, 1, 2}, {3, 0, 2, 1},
+      {3, 1, 0, 2}, {3, 1, 2, 0}, {3, 2, 0, 1}, {3, 2, 1, 0},
+  };
+
+  uint8_t unpacked[4] = {0};
+  uint8_t offset[4] = {0};
+
+  /* Copies src to dest in 4-byte chunks, randomizing the order of bytes within
+   each chunk based on random values from the RNG. If n is not a multiple of
+   4, the remaining bytes are copied without randomization at the end. */
+  for (size_t i = 0; i < (n / sizeof(uint32_t)); ++i) {
+
+    rng_get_bytes(offset, sizeof(offset));
+
+    const uint32_t idx = *((uint32_t *)offset) % 24;
+
+#pragma unroll
+    for (size_t j = 0; j < 4; ++j) {
+      unpacked[j] = temp_src[(i * sizeof(uint32_t)) + map[idx][j]];
+    }
+
+#pragma unroll
+    for (size_t j = 4; j > 0; --j) {
+      temp_dest[(i * sizeof(uint32_t)) + map[idx][j - 1]] = unpacked[j - 1];
+    }
+  }
+
+  const uint32_t rem = n % sizeof(uint32_t);
+  memcpy(&temp_dest[n - rem], &temp_src[n - rem], rem);
+
+  crypto_wipe(unpacked, sizeof(unpacked));
+  crypto_wipe(offset, sizeof(offset));
 }

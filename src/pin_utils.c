@@ -6,8 +6,7 @@
 #include <stdalign.h>
 #include <string.h>
 
-static uint8_t pin_hash[] = STAGE1_PIN_HASH;
-static const uint8_t stage1_key[] = STAGE1_KEY;
+static uint8_t pin_hash[sizeof(STAGE1_PIN_HASH)] = {0};
 
 // Changed each reboot
 static alignas(int) uint8_t random_data[32] = {0};
@@ -33,21 +32,12 @@ static void apply_stage1(uint8_t *const hash) {
   uint8_t temp[64] = {0};
 
   for (size_t i = 0; i < STAGE1_PIN_ITERATIONS; ++i) {
-    crypto_blake2b_keyed(temp, 64, stage1_key, sizeof(stage1_key), hash, 64);
-    memcpy(hash, temp, 64);
+    crypto_blake2b_keyed(temp, 64, STAGE1_KEY, sizeof(STAGE1_KEY), hash, 64);
+    random_memcpy(hash, temp, 64);
   }
   crypto_wipe(temp, 64);
 }
 
-/**
- * @brief Validates a provided pin by applying the hashing process and comparing
- * the result to the expected hash. The pin is expected to be a 6-character
- * hexadecimal string.
- *
- * @param pin Null-terminated string containing the pin to validate. Must be 6
- * characters long and consist of hexadecimal digits (0-9, A-F, a-f).
- * @return true if the provided pin is valid, false otherwise
- */
 bool validate_pin(const char pin[6]) {
   uint8_t hash[64] = {0};
 
@@ -61,8 +51,7 @@ bool validate_pin(const char pin[6]) {
     }
   }
 
-  // With all hope, the compiler will put this in an annoying place
-  memcpy(&hash[6], (void *)(uint8_t[])STAGE1_PADDING, 64 - 6);
+  random_memcpy(&hash[6], STAGE1_PADDING, 64 - 6);
 
   apply_stage1(hash);
   apply_stage2(hash);
@@ -73,15 +62,11 @@ bool validate_pin(const char pin[6]) {
   return is_valid;
 }
 
-/**
- * @brief Initializes the pin hashing process by generating random data,
- * applying stage 2 to the stage 1 hash, and preparing any necessary data for
- * the pin validation process.
- *
- */
 void init_pin(void) {
   rng_get_bytes(random_data, sizeof(random_data));
   rng_get_bytes(stage2_key, sizeof(stage2_key));
+
+  random_memcpy(pin_hash, STAGE1_PIN_HASH, sizeof(STAGE1_PIN_HASH));
 
   apply_stage2(pin_hash);
 }
@@ -114,7 +99,7 @@ static void apply_stage2(uint8_t *const hash) {
   const int int_data[3] = {
       (int)FACTORYREGION->BOOTCRC, // Crc of ALL board specific values
       (int)RANDOM_FUNC,            // Location in memory
-      STAGE2_RAND_INT,             // Random int from generate_secrets.
+      (int)STAGE2_RAND_INT,        // Random int from generate_secrets.
   };
   crypto_blake2b_update(&ctx, (const uint8_t *)int_data, sizeof(int_data));
 
@@ -128,6 +113,6 @@ static void apply_stage2(uint8_t *const hash) {
   crypto_blake2b_update(&ctx, RANDOM_FUNC, 64);
 
   crypto_blake2b_final(&ctx, temp);
-  memcpy(hash, temp, 64);
+  random_memcpy(hash, temp, 64);
   crypto_wipe(temp, 64);
 }
