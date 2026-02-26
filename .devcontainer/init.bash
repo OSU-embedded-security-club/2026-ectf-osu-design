@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo dnf install -y wget curl git cmake clangd clang-tools-extra uv doxygen
+sudo dnf install -y wget curl git cmake clangd clang-tools-extra uv doxygen python3-pip
 
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
 
@@ -12,3 +12,5 @@ mkdir /ti
 
 echo 'export TI_LLVM_ROOT=/ti/ti-cgt-armllvm_4.0.2.LTS' >> /etc/bashrc
 echo 'export PATH=$PATH:/ti/ti-cgt-armllvm_4.0.2.LTS/bin' >> /etc/bashrc
+
+pip install cryptography mypy
