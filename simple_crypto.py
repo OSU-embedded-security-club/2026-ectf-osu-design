@@ -121,10 +121,10 @@ def derive_params(
 
     hash: bytes = hasher.finalize()
 
-    key: bytes = hash[:24]
+    key: bytes = hash[:16]
     nonce: bytes = hash[24:] + b"\0x\0SU"
 
-    assert len(key) == 24, "Key must be 24 bytes long"
+    assert len(key) == 16, "Key must be 16 bytes long"
     assert len(nonce) == 12, "Nonce must be 12 bytes long"
 
     return key, nonce
