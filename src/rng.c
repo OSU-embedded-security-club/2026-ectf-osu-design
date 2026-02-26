@@ -41,11 +41,15 @@ int rng_init(void) {
 /**
  * @brief Get random bytes from the RNG.
  *
- * @param buf Pointer to the buffer where random bytes will be stored.
- * @param len Number of random bytes to generate.
+ * @param[out] buf Pointer to the buffer where random bytes will be stored.
+ * @param[in] len Number of random bytes to generate.
  * @return int 0 on success, negative value on failure.
  */
 int rng_get_bytes(uint8_t *const buf, const uint32_t len) {
+  if (len == 0) {
+    return -1;
+  }
+
   for (uint32_t i = 0; i < (len / sizeof(uint32_t)); ++i) {
     while (!DL_TRNG_isCaptureReady(TRNG)) {
       delay_cycles(1);
@@ -55,6 +59,7 @@ int rng_get_bytes(uint8_t *const buf, const uint32_t len) {
     memcpy(&buf[i * sizeof(uint32_t)], &random_value, sizeof(uint32_t));
   }
 
+  // Account for any remaining bytes if len is not a multiple of 4
   const uint32_t rem = len % sizeof(uint32_t);
   if (rem > 0) {
     while (!DL_TRNG_isCaptureReady(TRNG)) {
