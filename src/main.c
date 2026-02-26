@@ -1,81 +1,91 @@
-#include <ti_msp_dl_config.h>
-
-#include "utils.h"
-
 // #include "secrets.h"
+#include "aes.h"
 #include "message/header.h"
-#include "message/list.h"
-#include "message/read.h"
-#include "message/write.h"
-#include "message/listen.h"
 #include "message/interrogate.h"
+#include "message/list.h"
+#include "message/listen.h"
+#include "message/read.h"
 #include "message/receive.h"
+#include "message/write.h"
+#include "mpu.h"
 #include "pin_utils.h"
+#include "rng.h"
+#include "utils.h"
+#include <limits.h>
 
+/**
+ * @brief Buffer to store incoming messages. Size is 1 byte for magic + header +
+ * max payload size. Can also be used for outgoing messages.
+ *
+ */
+static uint8_t message_buffer[1 + sizeof(message_header_t) + 2048] = {0};
 
-//! Program Entrypoint
 int main(void) {
-    
-    // Configure System
-    SYSCFG_DL_init();
-    // Get the insecure stage1 hash rehashed as quickly as possible
-    init_pin();
+  const char err_msg[] = "No.";
 
-    // Setup LED pin
-    DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);
-    DL_GPIO_enableOutput(GPIOB, DL_GPIO_PIN_14);
+  aes_init();
+  rng_init();
+  mpu_init();
 
-    NVIC_EnableIRQ(HOST_INST_INT_IRQN);
-    DL_UART_enableInterrupt(HOST_INST, DL_UART_INTERRUPT_RX);
+  // TODO: Init Cortex MPU
 
-    char msg[] = "Initalized\n";
-    for(int i = 0; i < sizeof(msg); i++) {
-        DL_UART_transmitDataBlocking(HOST_INST, msg[i]);
-    }
+  // Configure System
+  SYSCFG_DL_init();
 
-}
+  // Get the insecure stage1 hash rehashed as quickly as possible
+  init_pin();
 
-// This doesn't work yet
-void HOST_INST_IRQHandler(void) {
-    
-    if(DL_UART_receiveData(HOST_INST) != '%') {
-        DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-        return;
-    }
+  // Disable LED
+  DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);
+  DL_GPIO_disableOutput(GPIOB, DL_GPIO_PIN_14);
 
-    // Disable UART Interrupt until done processing current Interrupt
-    // NVIC_DisableIRQ(HOST_INST_INT_IRQN);
+  // Length of packet payload (not including header)
+  size_t rx_len = 0;
+
+  while (1) {
+    utils_receive_packet(HOST_INST, message_buffer, &rx_len);
+
+    const char magic = (char)message_buffer[0];
+    message_header_t header = {0};
+
+    memcpy(&header, &message_buffer[1], sizeof(header));
 
     // TODO: Set watchdog to ensure reset if header gets hungup
 
-    message_header_t header = message_header_request(HOST_INST);
-
-    switch(header.operation) {
-        case MESSAGE_LIST:
-            message_list_response(header);
-            break;
-        case MESSAGE_READ:
-            message_read_response(header);
-            break;
-        case MESSAGE_WRITE:
-            message_write_response(header);
-            break;
-        case MESSAGE_RECEIVE:
-            message_recieve(header);
-            break;
-        case MESSAGE_INTERROGATE:
-            message_interrogate(header);
-            break;
-        case MESSAGE_LISTEN:
-            message_listen(header);
-            break;
-        default:
-            char err_msg[] = "Operation not Supported";
-            message_header_send_error(HOST_INST, err_msg, sizeof(err_msg));
-            break;
-    };
-
-    // Don't Clear Interrupt until done processing
-    DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-
+    switch (header.operation) {
+    case MESSAGE_LIST: {
+      message_list_response(header, rx_len,
+                            &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    case MESSAGE_READ: {
+      message_read_response(header, rx_len,
+                            &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    case MESSAGE_WRITE: {
+      message_write_response(header, rx_len,
+                             &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    case MESSAGE_RECEIVE: {
+      message_receive(header, rx_len, &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    case MESSAGE_INTERROGATE: {
+      message_interrogate_response(header, rx_len,
+                                   &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    case MESSAGE_LISTEN: {
+      message_listen_response(header, rx_len,
+                              &message_buffer[sizeof(header) + 1]);
+      break;
+    }
+    default: {
+      message_header_send_error(HOST_INST, err_msg, sizeof(err_msg));
+      break;
+    }
+    }
+  }
 }
