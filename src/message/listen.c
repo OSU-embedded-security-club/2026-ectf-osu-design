@@ -1,7 +1,7 @@
 #include "message/listen.h"
 
-void message_listen(const message_header_t header, const size_t rx_len,
-                    const uint8_t *const payload) {
+void message_listen_response(const message_header_t header, const size_t rx_len,
+                             const uint8_t *const payload) {
   // TODO: Implement listen response
 
   char msg[] = "Listen not implemented yet";
