@@ -3,6 +3,8 @@
 #include "ti_msp_dl_config.h"
 
 typedef enum : char {
+  //! Empty/Invalid Message
+  MESSAGE_NONE = 0,
   //! List files command/response
   MESSAGE_LIST = 'L',
   //! Read file command/response
