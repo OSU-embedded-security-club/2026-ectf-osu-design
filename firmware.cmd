@@ -1,20 +1,35 @@
 -uinterruptVectors
 --stack_size=256
 
-#define FLASH_BASE 0x6000
-#define FAT_BASE 0x3A000
+#define BOOTLOADER_BASE 0x00000000
+#define FLASH_BASE      0x00006000
+#define FILE_STORE_BASE 0x00020000
+#define FAT_BASE        0x0003A000
+#define APP2_BASE       0x0003A400
+#define SRAM_BASE       0x20200000
+#define BCR_CONFIG_BASE 0x41C00000
+#define BSL_CONFIG_BASE 0x41C00100
+
+#define BOOTLOADER_SIZE 0x00006000
+#define FLASH_SIZE      0x00019FFF
+#define FILE_STORE_SIZE 0x0001A000
+#define FAT_SIZE        0x00000400
+#define APP2_SIZE       0x00005c00
+#define SRAM_SIZE       0x00008000
+#define BCR_CONFIG_SIZE 0x000000FF
+#define BSL_CONFIG_SIZE 0x00000080
 
 MEMORY
 {
     /* Divide this in half and allocate the first half to user space and the second reserved */
-    BOOTLOADER      (RX)  : origin = 0x00000000, length = 0x00006000 /* Bootloader flash */
-    FLASH           (RX)  : origin = 0x00006000, length = 0x00019FFF /* Location of team firmware */
-    FILE_STORE      (RW)  : origin = 0x00020000, length = 0x0001A000 /* File Store */
-    FAT             (RW)  : origin = 0x0003A000, length = 0x00000400 /* Used to store tag, length, pointer values for files */
-    APP2            (RX)  : origin = 0x0003A400, length = 0x00005c00 /* Location of team firmware */
-    SRAM            (RWX) : origin = 0x20200000, length = 0x00008000
-    BCR_CONFIG      (R)   : origin = 0x41C00000, length = 0x000000FF
-    BSL_CONFIG      (R)   : origin = 0x41C00100, length = 0x00000080
+    BOOTLOADER      (R)  : origin = BOOTLOADER_BASE, length = BOOTLOADER_SIZE /* Bootloader flash */
+    FLASH           (R)  : origin = FLASH_BASE, length = FLASH_SIZE /* Location of team firmware */
+    FILE_STORE      (R)  : origin = FILE_STORE_BASE, length = FILE_STORE_SIZE /* File Store */
+    FAT             (R)  : origin = FAT_BASE, length = FAT_SIZE /* Used to store tag, length, pointer values for files */
+    APP2            (R)  : origin = APP2_BASE, length = APP2_SIZE /* Location of team firmware */
+    SRAM            (RW) : origin = SRAM_BASE, length = SRAM_SIZE
+    BCR_CONFIG      (R)  : origin = BCR_CONFIG_BASE, length = BCR_CONFIG_SIZE
+    BSL_CONFIG      (R)  : origin = BSL_CONFIG_BASE, length = BSL_CONFIG_SIZE
 }
 
 SECTIONS
