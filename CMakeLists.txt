@@ -8,6 +8,8 @@ set(CMAKE_SYSTEM_NAME Generic)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_C_STANDARD 17)
+
 set(PROCESSOR_OPTIONS
     -D__MSPM0L2228__
     -march=thumbv6m
@@ -17,7 +19,7 @@ set(PROCESSOR_OPTIONS
     -mthumb
 )
 
-set(OPTIMIZATION_OPTION -O0)
+# set(OPTIMIZATION_OPTION -O3)
 set(LTO_OPTION          -flto)
 set(DEBUG_OPTION        -gdwarf-3)
 
@@ -36,9 +38,9 @@ project(hsm LANGUAGES C)
 # Compiler options
 add_compile_options(
     ${PROCESSOR_OPTIONS}
-    ${OPTIMIZATION_OPTION}
+    # ${OPTIMIZATION_OPTION}
     ${LTO_OPTION}
-    ${DEBUG_OPTION}
+    # ${DEBUG_OPTION}
 )
 
 # Include SDK Headers
@@ -82,6 +84,10 @@ target_include_directories(monocypher PUBLIC
     Monocypher/src
 )
 
+target_compile_options(monocypher PRIVATE
+    -O2
+)
+
 #####################
 # Create Executable #
 #####################
@@ -96,6 +102,10 @@ add_executable(
 
 target_include_directories(hsm PUBLIC
     ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_options(hsm PRIVATE
+    -O3
 )
 
 target_link_libraries(hsm PRIVATE monocypher)

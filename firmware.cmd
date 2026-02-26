@@ -1,5 +1,5 @@
 -uinterruptVectors
---stack_size=256
+--stack_size=0x4000
 
 #define FLASH_BASE 0x6000
 #define FAT_BASE 0x3A000
@@ -19,8 +19,8 @@ MEMORY
 
 SECTIONS
 {
-    .fat:   > FAT_BASE
-    .file_store : palign(1024) {} > FILE_STORE
+    .fat        : {} > FAT /* , fill = 0x00000000 */
+    .file_store : {} > FILE_STORE /* , fill = 0x00000000 */
 
     .intvecs:   > FLASH_BASE
     .text   : palign(8) {} > FLASH

@@ -1,5 +1,6 @@
 CompileFlags:
     BuiltinHeaders: QueryDriver
+    Compiler: tiarmclang
     Add: [--target=thumb]
     CompilationDatabase: build
 

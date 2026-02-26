@@ -38,10 +38,11 @@ typedef struct {
  * @brief Parses Message Header from uart
  *
  * @param[in] Uart Registers to parse header from
+ * @param[out] header Output Header
  * 
- * @returns Request Headers
+ * @returns 0 on success
  */
-message_header_t message_header_request(UART_Regs *uart);
+int message_header_request(UART_Regs *uart, message_header_t* header);
 
 /**
  * @brief Starts a Response to the Host Tools
@@ -74,3 +75,10 @@ void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len)
  * @param[in] uart      UART registers for communication
  */
 void message_header_send_ack(UART_Regs* uart);
+
+/**
+ * @brief Block until ACK message is received
+ * 
+ * @param[in] uart UART registers for communication
+ */
+void message_header_receive_ack(UART_Regs* uart);

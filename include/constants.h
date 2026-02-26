@@ -10,7 +10,5 @@
 #define MAX_GROUPS 32
 #define NUM_SLOTS 8
 
-//! This padding is used to align the ACK for write requests
-//! with the AES block size
-#define FILE_PADDING_FRONT 5
-#define FILE_PADDING_BACK 3
+#define CHUNK_SIZE 256
+#define WRITE_HEADER_SIZE 59

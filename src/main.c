@@ -13,11 +13,14 @@
 #include "pin_utils.h"
 
 
+
+
 //! Program Entrypoint
 int main(void) {
     
     // Configure System
     SYSCFG_DL_init();
+
     // Get the insecure stage1 hash rehashed as quickly as possible
     init_pin();
 
@@ -25,30 +28,50 @@ int main(void) {
     DL_GPIO_clearPins(GPIOB, DL_GPIO_PIN_14);
     DL_GPIO_enableOutput(GPIOB, DL_GPIO_PIN_14);
 
-    NVIC_EnableIRQ(HOST_INST_INT_IRQN);
-    DL_UART_enableInterrupt(HOST_INST, DL_UART_INTERRUPT_RX);
+    DL_AESADV_disablePower(AESADV);
 
-    char msg[] = "Initalized\n";
-    for(int i = 0; i < sizeof(msg); i++) {
-        DL_UART_transmitDataBlocking(HOST_INST, msg[i]);
-    }
+    NVIC_SetPriority(DMA_INT_IRQn, 1);
+    NVIC_SetPriority(HOST_INST_INT_IRQN, 3);
+
+    NVIC_EnableIRQ(HOST_INST_INT_IRQN);
+    NVIC_EnableIRQ(DMA_INT_IRQn);
+
+    DL_UART_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
+    DL_UART_enableInterrupt(HOST_INST, DL_UART_INTERRUPT_RX);
 
 }
 
-// This doesn't work yet
+// void Reset_Handler() {
+//     while(1) {}
+// }
+
+void NMI_Handler()  {
+    while(1) {}
+}
+
+void HardFault_Handler() {
+    while(1) {}
+}
+
+void SVC_Handler() {
+    while(1) {}
+}
+
+void PendSV_Handler() {
+    while(1) {}
+}
+
+
+
 void HOST_INST_IRQHandler(void) {
-    
-    if(DL_UART_receiveData(HOST_INST) != '%') {
+    // TODO: Set watchdog to ensure reset if header gets hungup
+    message_header_t header;
+    int result = message_header_request(HOST_INST, &header);
+
+    if(result != 0) {
         DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
         return;
     }
-
-    // Disable UART Interrupt until done processing current Interrupt
-    // NVIC_DisableIRQ(HOST_INST_INT_IRQN);
-
-    // TODO: Set watchdog to ensure reset if header gets hungup
-
-    message_header_t header = message_header_request(HOST_INST);
 
     switch(header.operation) {
         case MESSAGE_LIST:
@@ -70,8 +93,6 @@ void HOST_INST_IRQHandler(void) {
             message_listen(header);
             break;
         default:
-            char err_msg[] = "Operation not Supported";
-            message_header_send_error(HOST_INST, err_msg, sizeof(err_msg));
             break;
     };
 

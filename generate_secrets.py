@@ -10,7 +10,8 @@ import jinja2
 
 SOURCE_DIR = dirname(abspath(__file__))
 SECRETS_BASE = join(SOURCE_DIR, "include", "secrets.h.base")
-SECRETS_OUT = join(SOURCE_DIR, "include", "secrets.h")
+SECRETS_H_OUT = join(SOURCE_DIR, "include", "secrets.h")
+SECRETS_C_OUT = join(SOURCE_DIR, "src", "secrets.c")
 
 # Contants
 
@@ -81,7 +82,7 @@ def main():
     # Create HSM Pin Hash
 
     # Create HSM Permissions
-    groups: dict[str, dict[str, str]] = dict()
+    groups = dict()
     for permission_str in args.permissions.split(':'):
         group_id: str
         permissions: str
@@ -100,20 +101,26 @@ def main():
         groups[group_id]["write"]["public"] = secrets[group_id]["write"]["public"]
         groups[group_id]["transfer"]["public"] = secrets[group_id]["transfer"]["public"]
 
-    jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader("include"))
+    jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
     
-    jinja_file = jinja_env.get_template("secrets.h.j2")
+    jinja_h_file = jinja_env.get_template("include/secrets.h.j2")
+    jinja_c_file = jinja_env.get_template("src/secrets.c.j2")
 
     print(args.hsm_pin)
 
-    with open(SECRETS_OUT, 'w') as out:
-        out.write(jinja_file.render(
+    with open("include/secrets.h", 'w') as out:
+        out.write(jinja_h_file.render(
             STAGE1_PIN_ITERATIONS=STAGE1_PIN_ITERATIONS,
             STAGE1_KEY=STAGE1_KEY.hex(),
             STAGE1_PADDING=STAGE1_PADDING.hex(),
             STAGE2_RAND_INT=STAGE2_RAND_INT,
             STAGE1_PIN_HASH=hash_pin(args.hsm_pin).hex(),
             groups=groups
+        ))
+
+    with open("src/secrets.c", 'w') as out:
+        out.write(jinja_c_file.render(
+            groups = groups
         ))
 
     # base = open(SECRETS_BASE).read()

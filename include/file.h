@@ -4,6 +4,7 @@
 #include "constants.h"
 
 #define FLASH_SECTOR_SIZE 1024
+#define FLASH_WORD_SIZE 8
 
 //! Required FAT Structure
 typedef struct {
@@ -19,6 +20,11 @@ typedef struct {
     //! Starting flash address of the file
     uint32_t address;
 } file_fat_entry_t;
+
+//! Ensure FAT Table takes whole number of sectors
+typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))){
+    file_fat_entry_t entries[NUM_SLOTS];
+} file_address_table_t;
 
 
 /*!
@@ -40,7 +46,7 @@ typedef struct {
     uint16_t file_size;
 
     //! File AES-GCM Tag
-    uint8_t file_signature[128];
+    uint32_t file_signature[4];
 
     /*!
      * This is the public key of a keypair generated for this
@@ -62,7 +68,7 @@ typedef struct {
  *      This metadata / file was written by a valid writer.
  * @endif
  */
-typedef struct {
+typedef struct __attribute__((aligned(FLASH_WORD_SIZE))) {
     //! File Metadata
     file_metadata_t metadata;
 
@@ -70,22 +76,37 @@ typedef struct {
     uint8_t writer_signature[64];
 } file_metadata_signed_t;
 
+//! Since the header is included as part of the 256 byte
+//! ACK the ACKs won't line up with AES block size for the write
+//! command. ACK_LENGTH - WRITE_HEADER_SIZE bytes will be waiting to
+//! be encrypted until more data is recieved which brings the buffers
+//! out of alignment.
+#define FILE_PADDING_FRONT (16 - ((256 - WRITE_HEADER_SIZE) % 16))
+#define MAX_PADDING_BACK (16 - (FILE_PADDING_FRONT + MAX_FILE_SIZE) % 16)
 
 /*!
  * @brief Structure of data in each "slot" of memory.
+ *
+ * This struct is designed to be written to flash so we have
+ * to change how the memory alignment works. Each member of this
+ * struct is aligned to the flash word size (8 bytes / 64 bits).
+ * This allows us to write each structure seperatly without having
+ * to worry about ECC which is automatically generated for flash word writes.
+ * The entire structure is aligned to the flash sector size (1024 bytes) so
+ * each entry can be cleanly erased without having to write back any of the other
+ * members in an array.
  * 
  */
-typedef struct {
+typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))) {
     //! Signed File Metadata
-    file_metadata_signed_t signed_metadata;
+    file_metadata_signed_t signed_metadata __attribute__((aligned(FLASH_WORD_SIZE)));
 
     //! Encrypted File with Padding using AES-GCM
-    uint8_t encrypted_file[FILE_PADDING_FRONT + MAX_FILE_SIZE + FILE_PADDING_BACK];
-    
-    //! Pad Slot so a whole number of sectors are used
-    uint8_t padding[1024 - (sizeof(file_metadata_signed_t) + sizeof(uint8_t[FILE_PADDING_FRONT + MAX_FILE_SIZE + FILE_PADDING_BACK])) % 1024];
+    uint8_t encrypted_file[FILE_PADDING_FRONT + MAX_FILE_SIZE + MAX_PADDING_BACK] __attribute__((aligned(FLASH_WORD_SIZE)));
 } file_slot_entry_t;
 
-__attribute__((location(0x3A000))) static file_fat_entry_t file_address_table[NUM_SLOTS];
+extern file_address_table_t FILE_ADDRESS_TABLE;
+extern file_slot_entry_t SLOTS[NUM_SLOTS];
 
-__attribute__((section(".file_store"))) static file_slot_entry_t slots[NUM_SLOTS];
+int file_read_fat(file_address_table_t* fat);
+int file_write_fat(file_address_table_t* fat);

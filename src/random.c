@@ -19,7 +19,7 @@ void random_fill_buffer(uint8_t *buffer, size_t length) {
 
         // Wait for TRNG to be ready
         while(!DL_TRNG_isCaptureReady(TRNG)) {
-            delay_cycles(1);
+            delay_cycles(100);
         }
 
         uint32_t rand_num = DL_TRNG_getCapture(TRNG);

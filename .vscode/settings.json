@@ -1,1 +1,6 @@
-{}
+{
+    "cortex-debug.variableUseNaturalFormat": true,
+    "clangd.arguments": [
+        "--query-driver=**tiarmclang"
+    ]
+}

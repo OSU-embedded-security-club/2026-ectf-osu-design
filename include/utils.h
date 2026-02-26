@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "message/header.h"
+#include "group.h"
+#include "secrets.h"
 
 #include "ti_msp_dl_config.h"
 
@@ -16,13 +18,22 @@ bool utils_verify_pin(uint8_t* pin, size_t pin_length);
 
 
 /**
- * @brief Sends a Buffer over UART
+ * @brief Sends a Buffer over UART with ACKing
  * 
  * @param uart      UART to send Buffer Over
  * @param buffer    Buffer Pointer
  * @param length    Buffer Length
  */
-void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length);
+void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length, size_t bytes_sent);
+
+/**
+ * @brief Sends a Buffer over UART without ACKing
+ * 
+ * @param uart      UART to send Buffer Over
+ * @param buffer    Buffer Pointer
+ * @param length    Buffer Length
+ */
+void utils_send_buffer_no_ack(UART_Regs* uart, const void* buffer, size_t length);
 
 /**
  * @brief Receives a specified number of bytes from the UART
@@ -35,6 +46,9 @@ void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length);
  * @param num_bytes Number of bytes to receive
  */
 void utils_receive_bytes(UART_Regs* uart, void* buffer, size_t num_bytes);
+
+const group_t* utils_find_group(uint16_t group_id);
+
 
 #ifdef DEBUG
 #define _WRITE_TO(FUNC, ...) do{                            \

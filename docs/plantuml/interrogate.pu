@@ -1,0 +1,20 @@
+@startuml
+actor User as u1
+participant HSM1 as h1
+participant HSM2 as h2
+actor User2 as u2
+
+u1 -> h1 : Listen Command
+u2 -> h2 : Interrogate Command
+h2 -> h1 : Interrogate Command Header
+h1 -> h2 : ACK
+h2 -> h1 : message_interrogate_verify struct
+h1 -> h2 : ACK
+h1 -> h2 : Interrogate Command Header
+h2 -> h1 : ACK
+h1 -> h2 : HSM1 Public Key
+h1 -> h2 : message_interrogate_file_info struct
+h1 -> h2 : AES-GCM Tag
+h2 -> h1 : ACK
+
+@enduml
