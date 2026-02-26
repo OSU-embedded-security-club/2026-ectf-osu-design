@@ -89,10 +89,10 @@ void utils_receive_packet(UART_Regs *const uart, void *const buffer,
 
   if ((header.operation != MESSAGE_ACK) &&
       (header.operation != MESSAGE_ERROR) &&
-      (header.operation != MESSAGE_DEBUG)) {
+      (header.operation != MESSAGE_DEBUG) && (*length <= 2048)) {
     utils_send_ack(uart);
 
-    if (header.message_length > 0) {
+    if ((header.message_length > 0) && (header.message_length <= 2048)) {
       utils_receive_bytes_and_ack(uart, &temp[sizeof(header) + 1],
                                   header.message_length);
       utils_send_ack(uart);
@@ -126,39 +126,51 @@ void utils_send_packet(UART_Regs *const uart, const uint8_t msg_type,
   }
 }
 
+/**
+ * @brief Shuffles the elements of the provided array in place using the
+ * Fisher-Yates algorithm, with randomness sourced from the RNG.
+ *
+ * @param[in] array A pointer to the array to be shuffled. The array is modified
+ * in place.
+ */
+static void shuffle_array(uint8_t *const array) {
+  uint8_t offset[4] = {0};
+
+  for (size_t i = 3; i > 0; --i) {
+    rng_get_bytes(offset, sizeof(offset));
+
+    const uint32_t rand_index = *((uint32_t *)offset) % (i + 1);
+
+    const uint8_t temp = array[i];
+    array[i] = array[rand_index];
+    array[rand_index] = temp;
+  }
+
+  crypto_wipe(offset, sizeof(offset));
+}
+
 void random_memcpy(void *dest, const void *src, const size_t n) {
   const uint8_t *const temp_src = (const uint8_t *)src;
   uint8_t *const temp_dest = (uint8_t *)dest;
 
-  // Order of the 4 bytes in each 32-bit word is determined by this map.
-  const uint8_t map[24][4] = {
-      {0, 1, 2, 3}, {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},
-      {0, 3, 2, 1}, {1, 0, 2, 3}, {1, 0, 3, 2}, {1, 2, 0, 3}, {1, 2, 3, 0},
-      {1, 3, 0, 2}, {1, 3, 2, 0}, {2, 0, 1, 3}, {2, 0, 3, 1}, {2, 1, 0, 3},
-      {2, 1, 3, 0}, {2, 3, 0, 1}, {2, 3, 1, 0}, {3, 0, 1, 2}, {3, 0, 2, 1},
-      {3, 1, 0, 2}, {3, 1, 2, 0}, {3, 2, 0, 1}, {3, 2, 1, 0},
-  };
-
   uint8_t unpacked[4] = {0};
-  uint8_t offset[4] = {0};
+
+  uint8_t map[4] = {0, 1, 2, 3};
 
   /* Copies src to dest in 4-byte chunks, randomizing the order of bytes within
    each chunk based on random values from the RNG. If n is not a multiple of
    4, the remaining bytes are copied without randomization at the end. */
   for (size_t i = 0; i < (n / sizeof(uint32_t)); ++i) {
-
-    rng_get_bytes(offset, sizeof(offset));
-
-    const uint32_t idx = *((uint32_t *)offset) % 24;
+    shuffle_array(map);
 
 #pragma unroll
     for (size_t j = 0; j < 4; ++j) {
-      unpacked[j] = temp_src[(i * sizeof(uint32_t)) + map[idx][j]];
+      unpacked[j] = temp_src[(i * sizeof(uint32_t)) + map[j]];
     }
 
 #pragma unroll
     for (size_t j = 4; j > 0; --j) {
-      temp_dest[(i * sizeof(uint32_t)) + map[idx][j - 1]] = unpacked[j - 1];
+      temp_dest[(i * sizeof(uint32_t)) + map[j - 1]] = unpacked[j - 1];
     }
   }
 
@@ -166,5 +178,5 @@ void random_memcpy(void *dest, const void *src, const size_t n) {
   memcpy(&temp_dest[n - rem], &temp_src[n - rem], rem);
 
   crypto_wipe(unpacked, sizeof(unpacked));
-  crypto_wipe(offset, sizeof(offset));
+  crypto_wipe(map, sizeof(map));
 }
