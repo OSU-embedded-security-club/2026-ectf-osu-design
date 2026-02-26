@@ -1,56 +1,80 @@
-# TODO: Put in a more competition ready format
-
-import os, struct, hashlib, time
-from os.path import join, dirname, abspath
-
-SOURCE_DIR = dirname(abspath(__file__))
-SECRETS_BASE = join(SOURCE_DIR, "include", "secrets.h.base")
-SECRETS_OUT = join(SOURCE_DIR, "include", "secrets.h")
-
-# Contants
-
-# **THIS IS WHERE YOU TUNE THE HASHING TIME**:
+from simple_config_writer import ConfigFile, CVar
+from simple_crypto import RNG, Hasher, KeyPair, derive_params
 
 # 64 byte blake2b = 155503 cycles, or 0.00485946875 seconds, or 205.78hz
 # Here, we are targeting 250 ms for the STAGE1 hash.
 # Please note, this is a hilariously weak hash, but it is the best we can do.
-STAGE1_PIN_ITERATIONS = int((205 / 1000) * 250)
+STAGE1_PIN_ITERATIONS: int = int((205 / 1000) * 250)
 
 
-STAGE1_KEY = os.urandom(32)
-STAGE1_PADDING = os.urandom(64 - 6)
-
-STAGE2_RAND_INT = struct.unpack("<I", os.urandom(4))[0]
+STAGE1_KEY: bytes = RNG.rand(64)
+STAGE1_PADDING: bytes = RNG.rand(64 - 6)
+STAGE2_RAND_INT: int = int.from_bytes(RNG.rand(4), "big")
 
 # Todo: change this
 PIN = "aBcDe6"
 
 
-def hash_pin(pin):
-    assert len(pin) == 6
-    # Throws an error if invalid
-    int(pin, 16)
+def hash_pin(pin: str) -> bytes:
+    """
+    Hash the pin using the stage 1 parameters.
 
-    hash = pin.lower().encode("ascii") + STAGE1_PADDING
-    for _ in range(STAGE1_PIN_ITERATIONS):
-        hash = hashlib.blake2b(hash, key=STAGE1_KEY).digest()
+    Args:
+        pin (str): The pin to hash, which must be a 6 character hexadecimal string.
+
+    Returns:
+        bytes: The hash of the pin, which will be stored in the config file.
+    """
+
+    assert len(pin) == 6
+    assert all(c in "0123456789abcdefABCDEF" for c in pin)
+
+    hash: bytes = Hasher.hash(
+        STAGE1_PIN_ITERATIONS,
+        STAGE1_KEY,
+        pin.lower().encode("ascii") + STAGE1_PADDING,
+    )
+
     return hash
 
 
-def make_c_bytes(data):
-    return "{" + ", ".join(f"0x{b:02x}" for b in data) + "}"
+def main() -> None:
+    config: ConfigFile = ConfigFile()
 
+    pin_iters: CVar = CVar(
+        "static const int",
+        "STAGE1_PIN_ITERATIONS",
+        STAGE1_PIN_ITERATIONS,
+    )
+    config.add_var(pin_iters)
 
-def main():
-    base = open(SECRETS_BASE).read()
+    stage1_key: CVar = CVar(
+        "static const uint8_t[]",
+        "STAGE1_KEY",
+        list(STAGE1_KEY),
+    )
+    config.add_var(stage1_key)
 
-    f = open(SECRETS_OUT, "w")
-    f.write(base)
-    f.write(f"\n#define STAGE1_PIN_ITERATIONS {STAGE1_PIN_ITERATIONS}")
-    f.write(f"\n#define STAGE1_KEY {make_c_bytes(STAGE1_KEY)}")
-    f.write(f"\n#define STAGE1_PADDING {make_c_bytes(STAGE1_PADDING)}")
-    f.write(f"\n#define STAGE2_RAND_INT {STAGE2_RAND_INT}U")
-    f.write(f"\n\n#define STAGE1_PIN_HASH {make_c_bytes(hash_pin(PIN))}")
+    stage1_padding: CVar = CVar(
+        "static const uint8_t[]",
+        "STAGE1_PADDING",
+        list(STAGE1_PADDING),
+    )
+    config.add_var(stage1_padding)
+
+    stage2_rand_int: CVar = CVar(
+        "static const uint32_t",
+        "STAGE2_RAND_INT",
+        STAGE2_RAND_INT,
+    )
+    config.add_var(stage2_rand_int)
+
+    pin_hash: CVar = CVar(
+        "static const uint8_t[]",
+        "STAGE1_PIN_HASH",
+        list(hash_pin(PIN)),
+    )
+    config.add_var(pin_hash)
 
 
 if __name__ == "__main__":

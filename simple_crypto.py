@@ -1,33 +1,31 @@
 """
 Author: Andrew Langan
-Date: 2025
+Date: 2026
 
 This file contains helpers to generate cryptographic keys
 
 Copyright: Copyright (c) 2025
 """
 
+import hashlib
+import os
 from ctypes import Array, c_uint8
 
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher
-from cryptography.hazmat.primitives.ciphers.algorithms import AES
-from cryptography.hazmat.primitives.ciphers.base import CipherContext
-from cryptography.hazmat.primitives.ciphers.modes import CTR
-from cryptography.hazmat.primitives.hashes import SHA256, Hash
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.hashes import BLAKE2b, Hash
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     NoEncryption,
-    PublicFormat,
     PrivateFormat,
+    PublicFormat,
 )
-from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
 
-def endian_swapB(
+def endian_swap_bytes(
     data: bytes,
 ) -> bytes:
     """
@@ -51,7 +49,7 @@ def endian_swapB(
     return b
 
 
-def endian_swapA(
+def endian_swap_array(
     data: Array[c_uint8],
 ) -> Array[c_uint8]:
     """
@@ -64,7 +62,7 @@ def endian_swapA(
         Array[c_uint8]: Swapped data
     """
 
-    return (c_uint8 * len(data))(*endian_swapB(bytes(data)))
+    return (c_uint8 * len(data))(*endian_swap_bytes(bytes(data)))
 
 
 def endian_swap64(
@@ -105,7 +103,6 @@ def endian_swap32(
 def derive_params(
     priv: "KeyPair",
     pub: "KeyPair",
-    ctr: int,
 ) -> tuple[bytes, bytes]:
     """
     Derive a nonce and key from two keypairs
@@ -118,34 +115,88 @@ def derive_params(
         tuple[bytes,bytes]: Key and nonce
     """
 
-    hasher: Hash = Hash(SHA256(), default_backend())
+    hasher: Hash = Hash(BLAKE2b(64), default_backend())
     shared_secret: bytes = priv.xkey.exchange(pub.xkey.public_key())
     hasher.update(shared_secret)
 
     hash: bytes = hasher.finalize()
 
-    return hash[:24], hash[24:] + b"\0x\0SU" + ctr.to_bytes(4, "big")
+    key: bytes = hash[:24]
+    nonce: bytes = hash[24:] + b"\0x\0SU"
+
+    assert len(key) == 24, "Key must be 24 bytes long"
+    assert len(nonce) == 12, "Nonce must be 12 bytes long"
+
+    return key, nonce
 
 
 def derive_keypair(
     priv: "KeyPair",
     pub: "KeyPair",
-    ctr: int,
-) -> CipherContext:
+) -> tuple[AESGCM, bytes]:
     """
     Derive an AES CipherContext from two keypairs
 
     Args:
         priv (KeyPair): Private keypair
         pub (KeyPair): Public keypair
-        ctr (int): Counter for the nonce
 
     Returns:
-        CipherContext: AES CipherContext
+        tuple[AESGCM, bytes]: AES GCM context and nonce
     """
 
-    key, nonce = derive_params(priv, pub, ctr)
-    return Cipher(AES(key), CTR(nonce), default_backend()).encryptor()
+    key, nonce = derive_params(priv, pub)
+    return AESGCM(key), nonce
+
+
+class RNG:
+    """
+    Class to hold a random number generator
+    """
+
+    @staticmethod
+    def rand(
+        num_bytes: int,
+    ) -> bytes:
+        """
+        Generate a random byte string of a given length
+
+        Args:
+            num_bytes (int): Number of bytes to generate
+
+        Returns:
+            bytes: Random byte string
+        """
+
+        return os.urandom(num_bytes)
+
+
+class Hasher:
+    """
+    Class to hold a hasher
+    """
+
+    @staticmethod
+    def hash(
+        rounds: int,
+        key: bytes,
+        data: bytes,
+    ) -> bytes:
+        """
+        Run a hash function for a number of rounds
+
+        Args:
+            rounds (int): Number of rounds to run
+            key (bytes): Key to use for the hash
+            data (bytes): Data to update with
+        """
+
+        hash: bytes = hashlib.blake2b(data, key=key).digest()
+
+        for _ in range(rounds - 1):
+            hash = hashlib.blake2b(hash, key=key).digest()
+
+        return hash
 
 
 class KeyPair:
@@ -160,26 +211,28 @@ class KeyPair:
 
     def __init__(
         self,
-        seed: str,
-        salt: str,
-        id: int,
+        key: bytes = os.urandom(32),
     ) -> None:
-        _seed: int = int.from_bytes(bytes.fromhex(seed), "big")
-        full_seed: bytes = _seed.to_bytes(64, "big") + id.to_bytes(4, "big")
+        """
+        Initialize the keypair with a random or provided key
 
-        key: bytes = PBKDF2HMAC(
-            SHA256(), 32, salt.encode(), 10_000_000, default_backend()
-        ).derive(full_seed)
+        Args:
+            key (bytes, optional): The key to use for the keypair. Defaults to os.urandom(32).
+        """
+
+        assert len(key) == 32, "Key must be 32 bytes long"
 
         self.key = Ed25519PrivateKey.from_private_bytes(key)
         self.xkey = X25519PrivateKey.from_private_bytes(key)
 
         assert (
             self.key.public_key().public_bytes(
-                Encoding.X962, PublicFormat.UncompressedPoint
+                Encoding.X962,
+                PublicFormat.UncompressedPoint,
             )[1:]
             == self.xkey.public_key().public_bytes(
-                Encoding.X962, PublicFormat.UncompressedPoint
+                Encoding.X962,
+                PublicFormat.UncompressedPoint,
             )[1:]
         ), "Public keys do not match"
 
@@ -228,7 +281,7 @@ class KeyPair:
             bytes: Signature
         """
 
-        hasher: Hash = Hash(SHA256(), default_backend())
+        hasher: Hash = Hash(BLAKE2b(64), default_backend())
         hasher.update(data)
         hash: bytes = hasher.finalize()
 
@@ -257,21 +310,23 @@ class KeyPair:
         self,
         data: bytes,
         other: "KeyPair",
-        ctr: int = 0,
-    ) -> bytes:
+    ) -> tuple[bytes, bytes]:
         """
         Encrypt data with a shared secret between two keys
 
         Args:
             data (bytes): Data to encrypt
+            other (KeyPair): Other keypair to derive the shared secret with
 
         Returns:
-            bytes: Encrypted data
+            tuple[bytes, bytes]: Encrypted data and tag
         """
 
-        cipher: CipherContext = derive_keypair(self, other, ctr)
+        cipher, nonce = derive_keypair(self, other)
 
-        return cipher.update(data) + cipher.finalize()
+        enc: bytes = cipher.encrypt(nonce, data, None)
+
+        return enc[:-16], enc[-16:]
 
 
 class AESState:
@@ -281,17 +336,18 @@ class AESState:
 
     key: bytes
     nonce: bytes
-    ctr: int
 
     def __init__(
         self,
         priv: KeyPair,
         pub: KeyPair,
     ) -> None:
-        self.key, self.nonce = derive_params(priv, pub, 0)
-        self.ctr = 0
+        self.key, self.nonce = derive_params(priv, pub)
 
-    def encrypt(self, data: bytes) -> bytes:
+    def encrypt(
+        self,
+        data: bytes,
+    ) -> tuple[bytes, bytes]:
         """
         Encrypt data with the AES state
 
@@ -299,21 +355,39 @@ class AESState:
             data (bytes): Data to encrypt
 
         Returns:
-            bytes: Encrypted data
+            tuple[bytes, bytes]: Encrypted data and tag
         """
 
         assert len(data) % 16 == 0, "Data must be a multiple of 16 bytes"
 
-        cipher = Cipher(
-            AES(self.key),
-            CTR(self.nonce),
-            default_backend(),
-        )
+        cipher: AESGCM = AESGCM(self.key)
 
-        encryptor: CipherContext = cipher.encryptor()
-        ciphertext = encryptor.update(data) + encryptor.finalize()
+        _nonce: bytes = self.nonce
+        ciphertext: bytes = cipher.encrypt(self.nonce, data, None)
+        assert self.nonce != _nonce, "Nonce was not updated!"
 
-        self.ctr += len(data) // 16
-        self.nonce = self.nonce[:12] + self.ctr.to_bytes(4, "big")
+        return ciphertext[:-16], ciphertext[-16:]
 
-        return ciphertext
+    def decrypt(
+        self,
+        data: bytes,
+    ) -> bytes:
+        """
+        Decrypt data with the AES state
+
+        Args:
+            data (bytes): Data to decrypt
+
+        Returns:
+            bytes: Decrypted data
+        """
+
+        assert len(data) % 16 == 0, "Data must be a multiple of 16 bytes"
+
+        cipher: AESGCM = AESGCM(self.key)
+
+        _nonce: bytes = self.nonce
+        plaintext: bytes = cipher.decrypt(self.nonce, data, None)
+        assert self.nonce != _nonce, "Nonce was not updated!"
+
+        return plaintext
