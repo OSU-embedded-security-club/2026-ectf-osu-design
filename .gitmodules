@@ -9,4 +9,4 @@
 	url = https://github.com/TexasInstruments/mspm0-sdk.git
 [submodule "firmware/Monocypher"]
 	path = firmware/Monocypher
-	url = git@github.com:LoupVaillant/Monocypher.git
+	url = https://github.com/LoupVaillant/Monocypher.git
