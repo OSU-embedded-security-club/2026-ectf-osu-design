@@ -91,7 +91,7 @@ def parse_args():
     parser.add_argument(
         "groups",
         nargs="+",
-        type=lambda x: int(x, 0),
+        type=lambda x: int(x, 16),
         help="Supported group IDs",
     )
     return parser.parse_args()
