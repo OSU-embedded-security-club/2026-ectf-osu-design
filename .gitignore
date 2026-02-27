@@ -126,3 +126,5 @@ __pycache__
 .venv
 *.secrets
 secrets.*
+
+firmware
