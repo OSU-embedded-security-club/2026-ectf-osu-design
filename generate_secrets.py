@@ -1,5 +1,5 @@
 from simple_config_writer import ConfigFile, CVar
-from simple_crypto import RNG, Hasher, KeyPair, derive_params
+from simple_crypto import RNG, Hasher
 
 # 64 byte blake2b = 155503 cycles, or 0.00485946875 seconds, or 205.78hz
 # Here, we are targeting 250 ms for the STAGE1 hash.
@@ -10,6 +10,7 @@ STAGE1_PIN_ITERATIONS: int = int((205 / 1000) * 250)
 STAGE1_KEY: bytes = RNG.rand(64)
 STAGE1_PADDING: bytes = RNG.rand(64 - 6)
 STAGE2_RAND_INT: int = int.from_bytes(RNG.rand(4), "big")
+ROOT_KEY: bytes = RNG.rand(32)
 
 # Todo: change this
 PIN = "aBcDe6"
@@ -75,6 +76,13 @@ def main() -> None:
         list(hash_pin(PIN)),
     )
     config.add_var(pin_hash)
+
+    root_key: CVar = CVar(
+        "static const uint8_t[]",
+        "ROOT_KEY",
+        list(ROOT_KEY),
+    )
+    config.add_var(root_key)
 
 
 if __name__ == "__main__":

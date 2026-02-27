@@ -6,7 +6,9 @@
 #include "message/listen.h"
 #include "message/read.h"
 #include "message/receive.h"
+#include "message/kex.h"
 #include "message/write.h"
+#include "monocypher.h"
 #include "mpu.h"
 #include "pin_utils.h"
 #include "rng.h"
@@ -41,12 +43,14 @@ int main(void) {
 
   // Length of packet payload (not including header)
   size_t rx_len = 0;
+  message_header_t header = {0};
 
   while (1) {
-    utils_receive_packet(HOST_INST, message_buffer, &rx_len);
+    crypto_wipe(message_buffer, sizeof(message_buffer));
+    crypto_wipe(&header, sizeof(header));
+    rx_len = 0;
 
-    const char magic = (char)message_buffer[0];
-    message_header_t header = {0};
+    utils_receive_packet(HOST_INST, message_buffer, &rx_len);
 
     memcpy(&header, &message_buffer[1], sizeof(header));
 
@@ -80,6 +84,11 @@ int main(void) {
     case MESSAGE_LISTEN: {
       message_listen_response(header, rx_len,
                               &message_buffer[sizeof(header) + 1]);
+      crypto_wipe(message_buffer, sizeof(message_buffer));
+      utils_receive_packet(HSM_INST, message_buffer, &rx_len);
+
+      memcpy(&header, &message_buffer[1], sizeof(header));
+      message_kex_response(header, rx_len, &message_buffer[sizeof(header) + 1]);
       break;
     }
     default: {

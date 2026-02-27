@@ -23,6 +23,8 @@ typedef enum : char {
   MESSAGE_ERROR = 'E',
   //! Provide debug information (ignored by testing framework)
   MESSAGE_DEBUG = 'D',
+  //! Exchange KEX information
+  MESSAGE_KEX = 'K',
 } message_operation_t;
 
 /**

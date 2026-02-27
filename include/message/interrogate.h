@@ -16,6 +16,21 @@
 
 #include "message/header.h"
 #include "utils.h"
+#include <stdint.h>
+
+/**
+ * @brief Structure for a PIN used in the Interrogate command.
+ *
+ */
+typedef char pin_t[6];
+
+/**
+ * @brief Structure for the Interrogate command payload.
+ *
+ */
+typedef struct {
+  pin_t pin;
+} interrogate_payload_t;
 
 /**
  * @brief Checks if the communication channel is open and ready for secure
@@ -32,7 +47,7 @@ bool channel_open(void);
  * @param data Pointer to the data to be sent
  * @param length Length of the data in bytes
  */
-void secure_send(const uint8_t *const data, const size_t length);
+NOTNULL() bool secure_send(const uint8_t *const data, const size_t length);
 
 /**
  * @brief Receives data securely from the communication channel, ensuring
@@ -41,7 +56,7 @@ void secure_send(const uint8_t *const data, const size_t length);
  * @param buffer Pointer to the buffer where received data will be stored
  * @param length Length of the buffer in bytes
  */
-void secure_receive(uint8_t *const buffer, const size_t length);
+NOTNULL() bool secure_receive(uint8_t *const buffer, const size_t length);
 
 /**
  * @brief Responds to Interrogate Request
