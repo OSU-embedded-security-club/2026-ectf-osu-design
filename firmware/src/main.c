@@ -94,11 +94,25 @@ void HOST_INST_IRQHandler(void) {
 
         // Don't Clear Interrupt until done processing
         DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-    } else if (interrupt != DL_UART_IIDX_NO_INTERRUPT) {
+   } else if(interrupt == DL_UART_IIDX_BREAK_ERROR) {
         delay_cycles(PIN_DELAY);
-        char msg[] = "UART Error";
+        char msg[] = "UART Break Error";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+    } else if(interrupt == DL_UART_IIDX_FRAMING_ERROR) {
+        delay_cycles(PIN_DELAY);
+        char msg[] = "UART Break Error";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+    } else if(interrupt == DL_UART_IIDX_NOISE_ERROR) {
+        delay_cycles(PIN_DELAY);
+        char msg[] = "UART Noise Error";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+    } else if(interrupt == DL_UART_IIDX_OVERRUN_ERROR) {
+        delay_cycles(PIN_DELAY);
+        char msg[] = "UART Noise Error";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     }
-
 }
