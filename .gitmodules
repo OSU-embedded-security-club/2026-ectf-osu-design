@@ -1,12 +1,12 @@
-[submodule "mspm0-sdk"]
-	path = mspm0-sdk
-	url = https://github.com/TexasInstruments/mspm0-sdk.git
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
 [submodule "TF-PSA-Crypto"]
 	path = TF-PSA-Crypto
 	url = https://github.com/Mbed-TLS/TF-PSA-Crypto.git
-[submodule "Monocypher"]
-	path = Monocypher
-	url = https://github.com/LoupVaillant/Monocypher.git
+[submodule "firmware/mspm0-sdk"]
+	path = firmware/mspm0-sdk
+	url = https://github.com/TexasInstruments/mspm0-sdk.git
+[submodule "firmware/Monocypher"]
+	path = firmware/Monocypher
+	url = git@github.com:LoupVaillant/Monocypher.git
