@@ -30,9 +30,6 @@ int main(void) {
     NVIC_EnableIRQ(HOST_INST_INT_IRQN);
     NVIC_EnableIRQ(DMA_INT_IRQn);
 
-    DL_UART_setRXFIFOThreshold(HOST_INST, DL_UART_RX_FIFO_LEVEL_ONE_ENTRY);
-    DL_UART_enableInterrupt(HOST_INST, DL_UART_INTERRUPT_RX);
-
     while(1) {
         DL_WWDT_reset(WWDT0);
     }
@@ -101,7 +98,7 @@ void HOST_INST_IRQHandler(void) {
         DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     } else if(interrupt == DL_UART_IIDX_FRAMING_ERROR) {
         delay_cycles(PIN_DELAY);
-        char msg[] = "UART Break Error";
+        char msg[] = "UART Framing Error";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     } else if(interrupt == DL_UART_IIDX_NOISE_ERROR) {
@@ -111,8 +108,9 @@ void HOST_INST_IRQHandler(void) {
         DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     } else if(interrupt == DL_UART_IIDX_OVERRUN_ERROR) {
         delay_cycles(PIN_DELAY);
-        char msg[] = "UART Noise Error";
+        char msg[] = "UART Overrun Error";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     }
+
 }
