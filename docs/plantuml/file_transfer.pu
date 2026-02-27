@@ -8,6 +8,14 @@ op1 -> HSM1 : Listen
 op2 -> HSM2 : Receive
 
 HSM2 -> HSM1 : Recieve Command
+HSM1 -> HSM2 : ACK
+HSM2 -> HSM1 : Read Slot
+HSM1 -> HSM2 : ACK
+HSM1 -> HSM2 : Recieve Command
+HSM2 -> HSM1 : ACK
 HSM1 -> HSM2 : X25519 Public Key
+HSM1 -> HSM2 : AES IV
 HSM1 -> HSM2 : Encrypted file_slot_entry_t
+HSM1 -> HSM2 : AES-GCM Tag
+HSM2 -> HSM1 : ACK
 @enduml

@@ -8,12 +8,14 @@ u1 -> h1 : Listen Command
 u2 -> h2 : Interrogate Command
 h2 -> h1 : Interrogate Command Header
 h1 -> h2 : ACK
-h2 -> h1 : message_interrogate_verify struct
+h2 -> h1 : AES IV
+h2 -> h1 : Encrypted Group List struct
+h2 -> h1 : AES-GCM Tag
 h1 -> h2 : ACK
 h1 -> h2 : Interrogate Command Header
 h2 -> h1 : ACK
-h1 -> h2 : HSM1 Public Key
-h1 -> h2 : message_interrogate_file_info struct
+h1 -> h2 : AES IV
+h1 -> h2 : Encrypted File Info Struct
 h1 -> h2 : AES-GCM Tag
 h2 -> h1 : ACK
 
