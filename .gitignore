@@ -125,4 +125,5 @@ __pycache__
 *.egg-info
 .venv
 *.secrets
-secrets.*
+secrets.h
+secrets.c
