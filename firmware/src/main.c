@@ -32,6 +32,40 @@ int main(void) {
 
     while(1) {
         DL_WWDT_reset(WWDT0);
+
+        // Poll UART
+        if(DL_UART_isRXFIFOEmpty(HOST_INST)) {
+            message_header_t header;
+            int result = message_header_request(HOST_INST, &header);
+
+            if(result != 0) {
+                continue;
+            }
+
+            switch(header.operation) {
+                case MESSAGE_LIST:
+                    message_list_response(header);
+                    break;
+                case MESSAGE_READ:
+                    message_read_response(header);
+                    break;
+                case MESSAGE_WRITE:
+                    message_write_response(header);
+                    break;
+                case MESSAGE_RECEIVE:
+                    message_recieve(header);
+                    break;
+                case MESSAGE_INTERROGATE:
+                    message_interrogate(header);
+                    break;
+                case MESSAGE_LISTEN:
+                    message_listen(header);
+                    break;
+                default:
+                    break;
+            };
+
+        }
     }
 
 }
@@ -51,66 +85,32 @@ void HardFault_Handler() {
     DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
 }
 
-
 void HOST_INST_IRQHandler(void) {
-    // Watchdog will trigger after 8s
-
     DL_UART_IIDX interrupt = DL_UART_getPendingInterrupt(HOST_INST);
 
-    if(interrupt == DL_UART_IIDX_RX) {
-        message_header_t header;
-        int result = message_header_request(HOST_INST, &header);
-
-        if(result != 0) {
-            DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-            return;
-        }
-
-        switch(header.operation) {
-            case MESSAGE_LIST:
-                message_list_response(header);
-                break;
-            case MESSAGE_READ:
-                message_read_response(header);
-                break;
-            case MESSAGE_WRITE:
-                message_write_response(header);
-                break;
-            case MESSAGE_RECEIVE:
-                message_recieve(header);
-                break;
-            case MESSAGE_INTERROGATE:
-                message_interrogate(header);
-                break;
-            case MESSAGE_LISTEN:
-                message_listen(header);
-                break;
-            default:
-                break;
-        };
-
-        // Don't Clear Interrupt until done processing
-        DL_UART_clearInterruptStatus(HOST_INST, DL_UART_INTERRUPT_RX);
-   } else if(interrupt == DL_UART_IIDX_BREAK_ERROR) {
-        delay_cycles(PIN_DELAY);
-        char msg[] = "UART Break Error";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
-    } else if(interrupt == DL_UART_IIDX_FRAMING_ERROR) {
-        delay_cycles(PIN_DELAY);
-        char msg[] = "UART Framing Error";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
-    } else if(interrupt == DL_UART_IIDX_NOISE_ERROR) {
-        delay_cycles(PIN_DELAY);
-        char msg[] = "UART Noise Error";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
-    } else if(interrupt == DL_UART_IIDX_OVERRUN_ERROR) {
-        delay_cycles(PIN_DELAY);
-        char msg[] = "UART Overrun Error";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+    switch(interrupt) {
+        case DL_UART_IIDX_BREAK_ERROR:
+            delay_cycles(PIN_DELAY);
+            const char break_msg[] = "UART Break Error";
+            message_header_send_error(HOST_INST, break_msg, sizeof(break_msg));
+            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+        break;
+        case DL_UART_IIDX_FRAMING_ERROR:
+            delay_cycles(PIN_DELAY);
+            const char frame_msg[] = "UART Framing Error";
+            message_header_send_error(HOST_INST, break_msg, sizeof(break_msg));
+            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+        break;
+        case DL_UART_IIDX_OVERRUN_ERROR:
+            delay_cycles(PIN_DELAY);
+            const char overrun_msg[] = "UART Overrun Error";
+            message_header_send_error(HOST_INST, overrun_msg, sizeof(overrun_msg));
+            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+        break;
+        default:
+            delay_cycles(PIN_DELAY);
+            char msg[] = "UART Error";
+            message_header_send_error(HOST_INST, msg, sizeof(msg));
+            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
     }
-
 }

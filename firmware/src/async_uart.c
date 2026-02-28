@@ -58,7 +58,6 @@ void DMA_IRQHandler(void) {
 
     if(interrupt > 16) {
         while(1) {}
-        // TODO: Throw Error
     }
 
     // The enumeration lines up with the DMA channel #

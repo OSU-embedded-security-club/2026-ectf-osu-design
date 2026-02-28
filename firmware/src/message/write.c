@@ -31,8 +31,6 @@ message_write_header_t message_write_parse_header(UART_Regs* uart) {
 
 void message_write_response(message_header_t header) {
 
-
-
     // Reset AES
     DL_AESADV_enablePower(AESADV);
     while(!DL_AESADV_isInputContextWriteable(AESADV));

@@ -135,8 +135,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_HOST_init(void)
     DL_UART_Main_enableInterrupt(HOST_INST,
                                  DL_UART_MAIN_INTERRUPT_BREAK_ERROR |
                                  DL_UART_MAIN_INTERRUPT_FRAMING_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_RX);
+                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR);
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(HOST_INST);
