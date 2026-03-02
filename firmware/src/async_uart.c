@@ -65,6 +65,7 @@ void DMA_IRQHandler(void) {
         DL_DMA_disableInterrupt(DMA, interrupt_mask);
         DL_UART_disableDMAReceiveEvent(ctx->uart, DL_UART_DMA_INTERRUPT_RX);
         DL_DMA_clearInterruptStatus(DMA, interrupt_mask);
+        ctx->stopped = true;
         return;
     }
 
