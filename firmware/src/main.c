@@ -106,11 +106,8 @@ void HOST_INST_IRQHandler(void) {
         case DL_UART_IIDX_OVERRUN_ERROR:
             delay_cycles(PIN_DELAY);
             const char overrun_msg[] = "UART Overrun Error";
-            bool err = true;
-            message_header_send_debug(HOST_INST, overrun_msg, sizeof(overrun_msg));
-            while(err) {}
-            // message_header_send_error(HOST_INST, overrun_msg, sizeof(overrun_msg));
-            // DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+            message_header_send_error(HOST_INST, overrun_msg, sizeof(overrun_msg));
+            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
         break;
         default:
             delay_cycles(PIN_DELAY);

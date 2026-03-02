@@ -66,7 +66,6 @@ void message_write_response(message_header_t header) {
     }
 
     if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
-        delay_cycles(3 * 32000000);
         const char msg[] = "Invalid File Size";
         uart_ctx.stop = true;
         while(uart_ctx.stopped != true);

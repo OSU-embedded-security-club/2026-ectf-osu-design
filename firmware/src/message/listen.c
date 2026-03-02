@@ -162,7 +162,6 @@ void message_listen(message_header_t header) {
         DL_DMA_setTransferSize(DMA, 1, sizeof(file_entry));
         DL_DMA_setSrcAddr(DMA, 1, (uint32_t) &SLOTS[slot]);
         DL_DMA_setDestAddr(DMA, 1, (uint32_t) &file_entry);
-        delay_cycles(0.5 * 32000000);
         DL_DMA_enableChannel(DMA, 1);
         DL_DMA_startTransfer(DMA, 1);
 
