@@ -4,10 +4,11 @@
 #include "file.h"
 #include "utils.h"
 
+#include <string.h>
 #include <monocypher.h>
 
 void message_recieve(message_header_t header) {
-    DL_AESADV_enablePower(AESADV);
+    // DL_AESADV_enablePower(AESADV);
 
     message_header_send_ack(HOST_INST);
 
@@ -144,7 +145,7 @@ void message_recieve(message_header_t header) {
     file_read_fat(&fat);
     fat.entries[write_slot].address = (uint32_t) &SLOTS[write_slot];
     fat.entries[write_slot].length = sizeof(file_slot_entry_t);
-    memcpy(file_entry.signed_metadata.metadata.uuid, fat.entries[write_slot].uuid, sizeof(uint8_t[16]));
+    memcpy(fat.entries[write_slot].uuid, file_entry.signed_metadata.metadata.uuid, sizeof(uint8_t[16]));
     file_write_fat(&fat);
 
     for(size_t i = 0; i < sizeof(file_slot_entry_t) / FLASH_SECTOR_SIZE; i++) {
@@ -167,5 +168,5 @@ void message_recieve(message_header_t header) {
     message_header_response(HOST_INST, header);
     message_header_receive_ack(HOST_INST);
 
-    DL_AESADV_disablePower(AESADV);
+    // DL_AESADV_disablePower(AESADV);
 }

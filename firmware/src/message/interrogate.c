@@ -10,7 +10,7 @@
 #include <monocypher.h>
 
 void message_interrogate(message_header_t header) {
-    DL_AESADV_enablePower(AESADV);
+    // DL_AESADV_enablePower(AESADV);
 
     message_header_send_ack(HOST_INST);
     uint8_t pin[6];
@@ -152,5 +152,5 @@ void message_interrogate(message_header_t header) {
     utils_send_buffer_no_ack(HOST_INST, &file_info->num_files, sizeof(file_info->num_files));
     utils_send_buffer(HOST_INST, file_info->files, file_info->num_files * sizeof(message_interrogate_file_metadata_t), sizeof(file_info->num_files));
 
-    DL_AESADV_disablePower(AESADV);
+    // DL_AESADV_disablePower(AESADV);
 }

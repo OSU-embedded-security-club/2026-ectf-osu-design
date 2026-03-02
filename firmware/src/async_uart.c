@@ -8,6 +8,8 @@ async_uart_ctx* transfers[16];
 int async_uart_receive(async_uart_ctx* ctx) {
     transfers[ctx->dma_channel] = ctx;
     ctx->transfer_complete = false;
+    ctx->stop = false;
+    ctx->stopped = false;
     
     DL_DMA_Config config = {
         .triggerType = DL_DMA_TRIGGER_TYPE_EXTERNAL,
@@ -56,12 +58,15 @@ void DMA_IRQHandler(void) {
     DL_DMA_EVENT_IIDX interrupt = DL_DMA_getPendingInterrupt(DMA);
     uint32_t interrupt_mask = (1 << (interrupt - 1));
 
-    if(interrupt > 16) {
-        while(1) {}
-    }
-
     // The enumeration lines up with the DMA channel #
     async_uart_ctx* ctx = transfers[interrupt - 1];
+
+    if(ctx->stop) {
+        DL_DMA_disableInterrupt(DMA, interrupt_mask);
+        DL_UART_disableDMAReceiveEvent(ctx->uart, DL_UART_DMA_INTERRUPT_RX);
+        DL_DMA_clearInterruptStatus(DMA, interrupt_mask);
+        return;
+    }
 
     size_t bytes_remaining = ctx->total_bytes - ctx->bytes_transfered;
     if(bytes_remaining == 0) {

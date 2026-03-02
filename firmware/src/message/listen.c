@@ -5,6 +5,7 @@
 #include "message/interrogate.h"
 #include "utils.h"
 
+#include <string.h>
 #include <monocypher.h>
 
 /**
@@ -13,7 +14,7 @@
  * @param header 
  */
 void message_listen(message_header_t header) {
-    DL_AESADV_enablePower(AESADV);
+    // DL_AESADV_enablePower(AESADV);
 
     message_header_send_ack(HOST_INST);
 
@@ -133,7 +134,6 @@ void message_listen(message_header_t header) {
 
         message_header_receive_ack(HSM_INST);
     } else if (hsm_header.operation == MESSAGE_RECEIVE) {
-
         message_header_send_ack(HSM_INST);
         uint8_t slot = DL_UART_receiveDataBlocking(HSM_INST);
         message_header_send_ack(HSM_INST);
@@ -158,12 +158,13 @@ void message_listen(message_header_t header) {
             .srcIncrement = DL_DMA_ADDR_INCREMENT,
             .destIncrement = DL_DMA_ADDR_INCREMENT,
         };
-        DL_DMA_initChannel(DMA, 0, &dma_config);
-        DL_DMA_setTransferSize(DMA, 0, sizeof(file_entry));
-        DL_DMA_setSrcAddr(DMA, 0, (uint32_t) &SLOTS[slot]);
-        DL_DMA_setDestAddr(DMA, 0, (uint32_t) &file_entry);
-        DL_DMA_enableChannel(DMA, 0);
-        DL_DMA_startTransfer(DMA, 0);
+        DL_DMA_initChannel(DMA, 1, &dma_config);
+        DL_DMA_setTransferSize(DMA, 1, sizeof(file_entry));
+        DL_DMA_setSrcAddr(DMA, 1, (uint32_t) &SLOTS[slot]);
+        DL_DMA_setDestAddr(DMA, 1, (uint32_t) &file_entry);
+        delay_cycles(0.5 * 32000000);
+        DL_DMA_enableChannel(DMA, 1);
+        DL_DMA_startTransfer(DMA, 1);
 
         hsm_header.message_length = 0;
         message_header_response(HSM_INST, hsm_header);
@@ -216,7 +217,7 @@ void message_listen(message_header_t header) {
         DL_AESADV_enableSavedOutputContext(AESADV);
         DL_AESADV_initGCM(AESADV, &aes_config); 
 
-        while(DL_DMA_isChannelEnabled(DMA, 0));
+        while(DL_DMA_isChannelEnabled(DMA, 1));
 
         size_t aes_blocks = sizeof(file_entry) / 16;
         for(size_t i = 0; i < aes_blocks; i++) {
@@ -245,5 +246,5 @@ void message_listen(message_header_t header) {
     message_header_response(HOST_INST, header);
     message_header_receive_ack(HOST_INST);
 
-    DL_AESADV_disablePower(AESADV);
+    // DL_AESADV_disablePower(AESADV);
 }

@@ -1,6 +1,10 @@
 #include "utils.h"
+
+#include "secrets.h"
 #include "random.h"
 #include "pin_utils.h"
+
+#include <string.h>
 
 bool utils_verify_pin(uint8_t* pin, size_t pin_length) {
     if (pin_length != 6) return false;
@@ -19,7 +23,7 @@ void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length, size
         }
     }
 
-    if((length + bytes_sent) % CHUNK_SIZE != 0 || length == 0) {
+    if(length % CHUNK_SIZE != 0 || length == 0) {
         message_header_receive_ack(uart);
     }
 }
@@ -51,5 +55,5 @@ void utils_random_delay() {
     
     // Num Between 0 - 4096
     random_num = random_num >> 4;
-    delay_cycles(random_num);
+    // delay_cycles(random_num);
 }

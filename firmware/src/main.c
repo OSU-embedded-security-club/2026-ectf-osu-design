@@ -22,7 +22,7 @@ int main(void) {
     // Get the insecure stage1 hash rehashed as quickly as possible
     init_pin();
 
-    DL_AESADV_disablePower(AESADV);
+    // DL_AESADV_enablePower(AESADV);
 
     NVIC_SetPriority(DMA_INT_IRQn, 1);
     NVIC_SetPriority(HOST_INST_INT_IRQN, 3);
@@ -30,11 +30,13 @@ int main(void) {
     NVIC_EnableIRQ(HOST_INST_INT_IRQN);
     NVIC_EnableIRQ(DMA_INT_IRQn);
 
+    DL_WWDT_disablePower(WWDT0);
+
     while(1) {
-        DL_WWDT_reset(WWDT0);
+        // DL_WWDT_reset(WWDT0);
 
         // Poll UART
-        if(DL_UART_isRXFIFOEmpty(HOST_INST)) {
+        if(!DL_UART_isRXFIFOEmpty(HOST_INST)) {
             message_header_t header;
             int result = message_header_request(HOST_INST, &header);
 
@@ -104,8 +106,11 @@ void HOST_INST_IRQHandler(void) {
         case DL_UART_IIDX_OVERRUN_ERROR:
             delay_cycles(PIN_DELAY);
             const char overrun_msg[] = "UART Overrun Error";
-            message_header_send_error(HOST_INST, overrun_msg, sizeof(overrun_msg));
-            DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
+            bool err = true;
+            message_header_send_debug(HOST_INST, overrun_msg, sizeof(overrun_msg));
+            while(err) {}
+            // message_header_send_error(HOST_INST, overrun_msg, sizeof(overrun_msg));
+            // DL_SYSCTL_resetDevice(DL_SYSCTL_RESET_POR);
         break;
         default:
             delay_cycles(PIN_DELAY);

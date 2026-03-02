@@ -3,6 +3,8 @@
 #include "file.h"
 #include "utils.h"
 
+#include <string.h>
+
 void message_list_response(message_header_t header) {
 
     message_header_send_ack(HOST_INST);
