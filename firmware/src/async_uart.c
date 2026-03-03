@@ -48,6 +48,8 @@ int async_uart_receive(async_uart_ctx* ctx) {
     }
 
     DL_DMA_enableInterrupt(DMA, (1 << (ctx->dma_channel)));
+
+    delay_cycles(DMA_DELAY);
     DL_DMA_enableChannel(DMA, ctx->dma_channel);
 
     return 0;

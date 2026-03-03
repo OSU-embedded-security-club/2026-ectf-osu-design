@@ -12,8 +12,7 @@
 
 BufferNode buffers[2];
 
-#define DMA_CHANNEL_UART 0
-#define DMA_CHANNEL_AES 1
+#define DMA_CHANNEL 1
 
 message_write_header_t message_write_parse_header(UART_Regs* uart) {
     message_write_header_t write_header;
@@ -50,7 +49,7 @@ void message_write_response(message_header_t header) {
 
     async_uart_ctx uart_ctx = {
         .uart = HOST_INST,
-        .dma_channel = 0,
+        .dma_channel = DMA_CHANNEL,
         .first_chunk_offset = WRITE_HEADER_SIZE,
         .total_bytes = write_header.file_length,
         .buffer = file_buffer,

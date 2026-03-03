@@ -7,9 +7,7 @@
 #include <string.h>
 #include <monocypher.h>
 
-#define FLASH_DMA 0
-#define AES_DMA 1
-#define UART_DMA 2
+#define DMA_CHANNEL 2
 
 BufferNode buffers[2];
 
@@ -36,8 +34,8 @@ void message_read_response(message_header_t header) {
         .srcIncrement = DL_DMA_ADDR_INCREMENT,
         .destIncrement = DL_DMA_ADDR_UNCHANGED,
     };
-    DL_DMA_initChannel(DMA, UART_DMA, &uart_dma);
-    DL_DMA_setDestAddr(DMA, UART_DMA, (uint32_t) &(HOST_INST->TXDATA));
+    DL_DMA_initChannel(DMA, DMA_CHANNEL, &uart_dma);
+    DL_DMA_setDestAddr(DMA, DMA_CHANNEL, (uint32_t) &(HOST_INST->TXDATA));
     DL_UART_enableDMATransmitEvent(HOST_INST);
 
     // Read Request from Host
@@ -201,10 +199,10 @@ void message_read_response(message_header_t header) {
         }
         bytes_read += aes_buffer->length;
 
-        DL_DMA_setSrcAddr(DMA, UART_DMA, (uint32_t) uart_buffer->buffer);
-        DL_DMA_setTransferSize(DMA, UART_DMA, uart_buffer->length);
+        DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
+        DL_DMA_setTransferSize(DMA, DMA_CHANNEL, uart_buffer->length);
 
-        DL_DMA_enableChannel(DMA, UART_DMA);
+        DL_DMA_enableChannel(DMA, DMA_CHANNEL);
 
         buffer_ptr = aes_buffer->buffer;
         for(int i = 0; i < aes_buffer->length; i += 16) {
@@ -218,7 +216,7 @@ void message_read_response(message_header_t header) {
         }
 
         // Wait for transfer
-        while(DL_DMA_isChannelEnabled(DMA, UART_DMA));
+        while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
 
         message_header_receive_ack(HOST_INST);
 
@@ -241,11 +239,12 @@ void message_read_response(message_header_t header) {
     
 
     uint16_t padding = padded_length - file_length;
-    DL_DMA_setSrcAddr(DMA, UART_DMA, (uint32_t) uart_buffer->buffer);
-    DL_DMA_setTransferSize(DMA, UART_DMA, ((uart_buffer->length) - padding));
+    DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
+    DL_DMA_setTransferSize(DMA, DMA_CHANNEL, ((uart_buffer->length) - padding));
 
-    DL_DMA_enableChannel(DMA, UART_DMA);
-    while(DL_DMA_isChannelEnabled(DMA, UART_DMA));
+    delay_cycles(DMA_CHANNEL);
+    DL_DMA_enableChannel(DMA, DMA_CHANNEL);
+    while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
 
     message_header_receive_ack(HOST_INST);
 

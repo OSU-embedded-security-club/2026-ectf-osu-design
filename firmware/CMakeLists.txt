@@ -105,7 +105,7 @@ target_include_directories(hsm PUBLIC
 )
 
 target_compile_options(hsm PRIVATE
-    -O3
+    -O0
 )
 
 target_link_libraries(hsm PRIVATE monocypher)
