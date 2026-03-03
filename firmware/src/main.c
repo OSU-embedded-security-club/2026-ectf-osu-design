@@ -16,6 +16,9 @@
 //! Program Entrypoint
 int main(void) {
     
+    DL_UART_reset(HOST_INST);
+    DL_UART_reset(HSM_INST);
+    
     // Configure System
     SYSCFG_DL_init();
 
