@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.29)
 # TODO: Remove this for during attack/handoff
 add_compile_definitions(DEBUG)
 
+message(STATUS "Building with cmake...")
 
 set(CMAKE_SYSTEM_NAME Generic)
 

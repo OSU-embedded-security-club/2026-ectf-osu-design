@@ -1,6 +1,7 @@
 # TODO: Put in a more competition ready format
 
 import argparse
+import logging
 import pathlib
 import json
 
@@ -71,6 +72,8 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 def main():
+    logging.basicConfig(level=logging.INFO)
+    logging.info("Generating secrets...")
 
     args = parse_args()
 
@@ -87,7 +90,7 @@ def main():
         group_id: str
         permissions: str
         group_id, permissions = permission_str.split('=')
-        
+
         groups[group_id] = {
             "read": {},
             "write": {},
@@ -100,9 +103,10 @@ def main():
         groups[group_id]["read"]["public"] = secrets[group_id]["read"]["public"]
         groups[group_id]["write"]["public"] = secrets[group_id]["write"]["public"]
         groups[group_id]["transfer"]["public"] = secrets[group_id]["transfer"]["public"]
+    logging.info(f"Groups: {groups}")
 
     jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader("."))
-    
+
     jinja_h_file = jinja_env.get_template("include/secrets.h.j2")
     jinja_c_file = jinja_env.get_template("src/secrets.c.j2")
 
@@ -115,12 +119,14 @@ def main():
             STAGE1_PIN_HASH=hash_pin(args.hsm_pin).hex(),
             groups=groups
         ))
+        logging.info("Wrote secrets.h")
 
     with open("src/secrets.c", 'w') as out:
         out.write(jinja_c_file.render(
             groups = groups,
             transfer_key = secrets["transfer_key"]
         ))
+        logging.info("Wrote secrets.c")
 
     # base = open(SECRETS_BASE).read()
 
