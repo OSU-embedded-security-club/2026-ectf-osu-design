@@ -18,7 +18,7 @@ from loguru import logger
 import monocypher
 
 from typing import Tuple
-import random
+import os
 
 def gen_secrets(groups: list[int]) -> bytes:
     """Generate the contents secrets file
@@ -64,7 +64,7 @@ def gen_secrets(groups: list[int]) -> bytes:
             },
         }
 
-    secrets["transfer_key"] = random.randbytes(16).hex()
+    secrets["transfer_key"] = os.urandom(16).hex()
 
     # NOTE: if you choose to use JSON for your file type, you will not
     # be able to store binary data, and must either use a different file
