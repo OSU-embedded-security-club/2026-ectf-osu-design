@@ -46,6 +46,7 @@ void message_write_response(message_header_t header) {
 
     // TODO: Check File Size
     if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
+        print_error("Invalid File Size %d", write_header.file_length);
         while(1) {}
     }
 
@@ -68,7 +69,7 @@ void message_write_response(message_header_t header) {
 
     if(!pin_valid) {
         const char msg[] = "Invalid PIN";
-    
+
         delay_cycles(PIN_DELAY);
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
@@ -150,7 +151,7 @@ void message_write_response(message_header_t header) {
     // 32bit for alignment purposes
     uint32_t secret[8];
     random_fill_buffer((uint8_t*) secret, sizeof(uint8_t[32]));
-    
+
     // Generate x25519 vals
     crypto_x25519_public_key(rand_pub_key, (uint8_t*) secret);
     crypto_x25519(raw_secret, (uint8_t*) secret, read_pub_key);

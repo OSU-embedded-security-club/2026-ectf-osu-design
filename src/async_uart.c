@@ -2,13 +2,14 @@
 
 #include "message/header.h"
 #include "constants.h"
+#include "utils.h"
 
 async_uart_ctx* transfers[16];
 
 int async_uart_receive(async_uart_ctx* ctx) {
     transfers[ctx->dma_channel] = ctx;
     ctx->transfer_complete = false;
-    
+
     DL_DMA_Config config = {
         .triggerType = DL_DMA_TRIGGER_TYPE_EXTERNAL,
         .transferMode = DL_DMA_SINGLE_TRANSFER_MODE,
@@ -57,6 +58,7 @@ void DMA_IRQHandler(void) {
     uint32_t interrupt_mask = (1 << (interrupt - 1));
 
     if(interrupt > 16) {
+        print_error("Invalid DMA interrupt %d", interrupt);
         while(1) {}
         // TODO: Throw Error
     }

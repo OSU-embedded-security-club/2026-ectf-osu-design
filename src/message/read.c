@@ -56,7 +56,7 @@ void message_read_response(message_header_t header) {
 
     if(!pin_valid) {
         const char msg[] = "Invalid PIN";
-    
+
         delay_cycles(PIN_DELAY);
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
@@ -87,12 +87,14 @@ void message_read_response(message_header_t header) {
     // Check if File Exists
     if(file_length == 0 || file_length > MAX_FILE_SIZE) {
         // TODO: Error
+        print_error("Invalid File Size %d", file_length);
         while(1) {}
     }
 
     // Check if HSM can read
     if(!group->private.permissions.read){
-        while(1);
+        print_error("Group %d does not have read permissions", group->group_id);
+        while(1) {}
     }
 
     // Check File Signature
@@ -107,6 +109,8 @@ void message_read_response(message_header_t header) {
 
     if(valid == -1) {
         // TODO: Error
+        print_error("File Signature Invalid");
+        while(1) {}
     }
 
 
@@ -228,9 +232,10 @@ void message_read_response(message_header_t header) {
     utils_random_delay();
 
     if(verify == -1) {
+        print_error("File Signature Invalid");
         while(1) {}
     }
-    
+
 
     uint16_t padding = padded_length - file_length;
     DL_DMA_setSrcAddr(DMA, UART_DMA, (uint32_t) uart_buffer->buffer);
