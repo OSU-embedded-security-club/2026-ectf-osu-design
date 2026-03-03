@@ -48,8 +48,6 @@ int async_uart_receive(async_uart_ctx* ctx) {
     }
 
     DL_DMA_enableInterrupt(DMA, (1 << (ctx->dma_channel)));
-
-    delay_cycles(DMA_DELAY);
     DL_DMA_enableChannel(DMA, ctx->dma_channel);
 
     return 0;
@@ -73,11 +71,12 @@ void DMA_IRQHandler(void) {
 
     size_t bytes_remaining = ctx->total_bytes - ctx->bytes_transfered;
     if(bytes_remaining == 0) {
-        ctx->transfer_complete = true;
         message_header_send_ack(ctx->uart);
         DL_DMA_disableInterrupt(DMA, interrupt_mask);
         DL_UART_disableDMAReceiveEvent(ctx->uart, DL_UART_DMA_INTERRUPT_RX);
         DL_DMA_clearInterruptStatus(DMA, interrupt_mask);
+        ctx->transfer_complete = true;
+        ctx->stopped = true;
         return;
     } else if (bytes_remaining < CHUNK_SIZE) {
         DL_DMA_setTransferSize(DMA, ctx->dma_channel, bytes_remaining);
