@@ -4,6 +4,7 @@
 #include "datastructures.h"
 #include "utils.h"
 
+#include <string.h>
 #include <monocypher.h>
 
 #define FLASH_DMA 0
@@ -15,7 +16,7 @@ BufferNode buffers[2];
 #define READ_HEADER_LENGTH 32
 
 void message_read_response(message_header_t header) {
-    DL_AESADV_enablePower(AESADV);
+    // DL_AESADV_enablePower(AESADV);
     // DL_AESADV_reset(AESADV);
 
     // Init Buffers
@@ -72,7 +73,7 @@ void message_read_response(message_header_t header) {
     const group_t* group = utils_find_group(file->signed_metadata.metadata.group_id);
 
     if(group == 0) {
-        char msg[] = "HSM not provisioned for file group";
+        const char msg[] = "HSM not provisioned for file group";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
@@ -86,13 +87,16 @@ void message_read_response(message_header_t header) {
 
     // Check if File Exists
     if(file_length == 0 || file_length > MAX_FILE_SIZE) {
-        // TODO: Error
-        while(1) {}
+        const char msg[] = "No File in Slot";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
     }
 
     // Check if HSM can read
     if(!group->private.permissions.read){
-        while(1);
+        const char msg[] = "HSM doesn't have permission to read";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
     }
 
     // Check File Signature
@@ -106,7 +110,9 @@ void message_read_response(message_header_t header) {
     utils_random_delay();
 
     if(valid == -1) {
-        // TODO: Error
+        const char msg[] = "File Metadata is Corrupted";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
     }
 
 
@@ -228,7 +234,9 @@ void message_read_response(message_header_t header) {
     utils_random_delay();
 
     if(verify == -1) {
-        while(1) {}
+        const char msg[] = "File is Corrupted";
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
     }
     
 
@@ -242,5 +250,5 @@ void message_read_response(message_header_t header) {
     message_header_receive_ack(HOST_INST);
 
     DL_UART_disableDMATransmitEvent(HOST_INST);
-    DL_AESADV_disablePower(AESADV);
+    // DL_AESADV_disablePower(AESADV);
 }

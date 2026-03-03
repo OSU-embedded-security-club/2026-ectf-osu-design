@@ -135,10 +135,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_HOST_init(void)
     DL_UART_Main_enableInterrupt(HOST_INST,
                                  DL_UART_MAIN_INTERRUPT_BREAK_ERROR |
                                  DL_UART_MAIN_INTERRUPT_FRAMING_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_NOISE_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_PARITY_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_RX);
+                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR);
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(HOST_INST);
@@ -177,12 +174,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_HSM_init(void)
 
     /* Configure Interrupts */
     DL_UART_Main_enableInterrupt(HSM_INST,
-                                 DL_UART_MAIN_INTERRUPT_BREAK_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_FRAMING_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_NOISE_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_PARITY_ERROR |
-                                 DL_UART_MAIN_INTERRUPT_RX);
+                                 DL_UART_MAIN_INTERRUPT_OVERRUN_ERROR);
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(HSM_INST);
@@ -218,7 +210,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_WWDT0_init(void)
      *                         = 8.00 s * 0% = 0.00 s
      */
     DL_WWDT_initWatchdogMode(WWDT0_INST, DL_WWDT_CLOCK_DIVIDE_1,
-        DL_WWDT_TIMER_PERIOD_18_BITS, DL_WWDT_STOP_IN_SLEEP,
+        DL_WWDT_TIMER_PERIOD_18_BITS, DL_WWDT_RUN_IN_SLEEP,
         DL_WWDT_WINDOW_PERIOD_0, DL_WWDT_WINDOW_PERIOD_0);
 
     /* Set Window0 as active window */

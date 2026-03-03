@@ -7,6 +7,9 @@ typedef struct {
     uint8_t dma_channel;
     bool transfer_complete;
 
+    bool stop;
+    bool stopped;
+
     size_t first_chunk_offset;
     size_t bytes_transfered;
     size_t total_bytes;

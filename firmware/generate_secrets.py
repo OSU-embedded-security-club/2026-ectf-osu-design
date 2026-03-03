@@ -87,6 +87,9 @@ def main():
         group_id: str
         permissions: str
         group_id, permissions = permission_str.split('=')
+
+        # Convert HEX to Base10 String
+        group_id = str(int(group_id, 16))
         
         groups[group_id] = {
             "read": {},

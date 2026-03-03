@@ -44,7 +44,7 @@ void message_header_send_error(UART_Regs* uart, const char* msg, size_t msg_len)
     message_header_response(uart, header);
     message_header_receive_ack(uart);
 
-    utils_send_buffer_no_ack(uart, msg, msg_len);
+    utils_send_buffer(uart, msg, msg_len, 0);
 }
 
 void message_header_send_debug(UART_Regs* uart, const char* msg, size_t msg_len) {

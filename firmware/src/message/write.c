@@ -31,11 +31,9 @@ message_write_header_t message_write_parse_header(UART_Regs* uart) {
 
 void message_write_response(message_header_t header) {
 
-
-
-    // Reset AES
-    DL_AESADV_enablePower(AESADV);
-    while(!DL_AESADV_isInputContextWriteable(AESADV));
+    // // Reset AES
+    // DL_AESADV_enablePower(AESADV);
+    // while(!DL_AESADV_isInputContextWriteable(AESADV));
 
     // Start recieving write command
     message_header_send_ack(HOST_INST);
@@ -44,10 +42,7 @@ void message_write_response(message_header_t header) {
     message_write_header_t write_header = message_write_parse_header(HOST_INST);
 
 
-    // TODO: Check File Size
-    if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
-        while(1) {}
-    }
+
 
     // 32bit alignment
     __attribute__((aligned(4)))
@@ -60,7 +55,23 @@ void message_write_response(message_header_t header) {
         .total_bytes = write_header.file_length,
         .buffer = file_buffer,
     };
-    async_uart_receive(&uart_ctx);
+    int async_status = async_uart_receive(&uart_ctx);
+
+    if(async_status != 0) {
+        const char msg[] = "DMA Error";
+        uart_ctx.stop = true;
+        while(uart_ctx.stopped != true);
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
+
+    if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
+        const char msg[] = "Invalid File Size";
+        uart_ctx.stop = true;
+        while(uart_ctx.stopped != true);
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        return;
+    }
 
     bool pin_valid = utils_verify_pin(write_header.pin, sizeof(write_header.pin));
 
@@ -70,6 +81,8 @@ void message_write_response(message_header_t header) {
         const char msg[] = "Invalid PIN";
     
         delay_cycles(PIN_DELAY);
+        uart_ctx.stop = true;
+        while(uart_ctx.stopped != true);
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
@@ -79,18 +92,16 @@ void message_write_response(message_header_t header) {
 
     if(group == 0 || !group->private.permissions.write) {
         char msg[] = "HSM not provisioned for group";
+        uart_ctx.stop = true;
+        while(uart_ctx.stopped != true);
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
 
     if(write_header.slot > NUM_SLOTS) {
         char msg[] = "Invalid Slot Number";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        return;
-    }
-
-    if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
-        char msg[] = "Invalid File Size";
+        uart_ctx.stop = true;
+        while(uart_ctx.stopped != true);
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
@@ -230,9 +241,11 @@ void message_write_response(message_header_t header) {
         DL_FlashCTL_waitForCmdDone(FLASHCTL);
     }
 
+
+    // DL_AESADV_disablePower(AESADV);
+
     header.message_length = 0;
     message_header_response(HOST_INST, header);
     message_header_receive_ack(HOST_INST);
 
-    DL_AESADV_disablePower(AESADV);
 }

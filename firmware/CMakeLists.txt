@@ -38,9 +38,9 @@ project(hsm LANGUAGES C)
 # Compiler options
 add_compile_options(
     ${PROCESSOR_OPTIONS}
-    ${OPTIMIZATION_OPTION}
+    # ${OPTIMIZATION_OPTION}
     ${LTO_OPTION}
-    ${DEBUG_OPTION}
+    # ${DEBUG_OPTION}
 )
 
 # Include SDK Headers
@@ -77,7 +77,7 @@ link_libraries(
 
 add_library(monocypher
     Monocypher/src/monocypher.c
-    Monocypher/src/optional/monocypher-ed25519.c
+    # Monocypher/src/optional/monocypher-ed25519.c
 )
 
 target_include_directories(monocypher PUBLIC
@@ -134,8 +134,8 @@ if(Doxygen_FOUND)
     set(DOXYGEN_PROJECT_NAME "OSU Mitre 2026")
 
     set(DOXYGEN_EXCLUDE
-        ${CMAKE_SOURCE_DIR}/docs/doxygen-awesome-css
-        ${CMAKE_SOURCE_DIR}/docs/.gitignore
+        ${CMAKE_SOURCE_DIR}/../docs/doxygen-awesome-css
+        ${CMAKE_SOURCE_DIR}/../docs/.gitignore
     )
 
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
@@ -143,12 +143,12 @@ if(Doxygen_FOUND)
         docs/doxygen-awesome-css/doxygen-awesome-sidebar-only.css
     )
 
-    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/docs/index.md)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/../docs/index.md)
 
     set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml.jar)
     set(DOXYGEN_PLANTUMLFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/plantuml)
 
-    set(DOXYGEN_DOTFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/dotfiles)
+    set(DOXYGEN_DOTFILE_DIRS ${CMAKE_SOURCE_DIR}/../docs/dotfiles)
     set(DOXYGEN_DOT_IMAGE_FORMAT svg)
     set(DOXYGEN_INTERACTIVE_SVG YES)
 

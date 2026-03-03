@@ -6,5 +6,5 @@ RUN bash init.bash
 
 
 
-COPY build.bash .
-CMD bash build.bash
+COPY build.sh .
+CMD bash build.sh
