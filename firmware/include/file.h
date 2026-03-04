@@ -21,7 +21,13 @@ typedef struct {
     uint32_t address;
 } file_fat_entry_t;
 
-//! Ensure FAT Table takes whole number of sectors
+/**
+ * @brief Padded File Address Table
+ *
+ * This struct is used to pad the array to a whole number of sectors.
+ * My understanding is that it isn't possible to pad C arrays so this
+ * acts as a little work around.
+ */
 typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))){
     file_fat_entry_t entries[NUM_SLOTS];
 } file_address_table_t;
@@ -93,7 +99,6 @@ typedef struct __attribute__((aligned(FLASH_WORD_SIZE))) {
  * The entire structure is aligned to the flash sector size (1024 bytes) so
  * each entry can be cleanly erased without having to write back any of the other
  * members in an array.
- * 
  */
 typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))) {
     //! Signed File Metadata

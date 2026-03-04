@@ -28,6 +28,18 @@ message_write_header_t message_write_parse_header(UART_Regs* uart) {
     return write_header;
 }
 
+/**
+ * This was fun to write and sucked to debug. Our implementation works
+ * by concurrently reading bytes from the UART with DMA while the encryption
+ * keys are derived and calculated. The encryption calculations are interrupted by
+ * the DMA to send ACKs and to re-enable the DMA for each chunk. After the entire file
+ * is read into memory then the AES is used to encrypt the file using the generated secret.
+ * Each file gets a randomly generated key-pair that is used in combination with the read public
+ * key to generate the secret key for the AES encryption. We use AES-GCM so we can verify the file
+ * when being read back to the user. The public key from the random key-pair is stored in the metadata
+ * that is then signed using the writer private key. This allows us to check that a file was created by a valid
+ * writer by verifing that the metadata signature is valid.
+*/
 void message_write_response(message_header_t header) {
 
     // Reset AES
