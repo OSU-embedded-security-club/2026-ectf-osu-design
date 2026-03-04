@@ -22,7 +22,7 @@ void message_list_response(message_header_t header) {
         const char msg[] = "Invalid PIN";
     
         delay_cycles(PIN_DELAY);
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
+        // message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
 
@@ -31,7 +31,7 @@ void message_list_response(message_header_t header) {
 
     for(uint16_t i = 0; i < NUM_SLOTS; i++) {
 
-        if(SLOTS[i].signed_metadata.metadata.file_size == 0 || SLOTS[i].signed_metadata.metadata.file_size > MAX_FILE_SIZE) {
+        if(SLOTS[i].signed_metadata.metadata.file_size > MAX_FILE_SIZE) {
             continue;
         }
 
