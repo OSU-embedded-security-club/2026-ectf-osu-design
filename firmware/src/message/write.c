@@ -56,17 +56,20 @@ void message_write_response(message_header_t header) {
         .total_bytes = write_header.file_length,
         .buffer = file_buffer,
     };
-    int async_status = async_uart_receive(&uart_ctx);
 
-    if(async_status != 0) {
-        const char msg[] = "DMA Error";
-        uart_ctx.stop = true;
-        while(uart_ctx.stopped != true);
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        return;
+    if(write_header.file_length > 0) {
+        int async_status = async_uart_receive(&uart_ctx);
+
+        if(async_status != 0) {
+            const char msg[] = "DMA Error";
+            uart_ctx.stop = true;
+            while(uart_ctx.stopped != true);
+            message_header_send_error(HOST_INST, msg, sizeof(msg));
+            return;
+        }
     }
 
-    if(write_header.file_length == 0 || write_header.file_length > MAX_FILE_SIZE) {
+    if(write_header.file_length > MAX_FILE_SIZE) {
         const char msg[] = "Invalid File Size";
         uart_ctx.stop = true;
         while(uart_ctx.stopped != true);
@@ -159,71 +162,76 @@ void message_write_response(message_header_t header) {
 
     memcpy(read_pub_key, group->public.read_key, sizeof(uint8_t[32]));
 
-    // 32bit for alignment purposes
-    uint32_t secret[8];
-    random_fill_buffer((uint8_t*) secret, sizeof(uint8_t[32]));
-    
-    // Generate x25519 vals
-    crypto_x25519_public_key(rand_pub_key, (uint8_t*) secret);
-    crypto_x25519(raw_secret, (uint8_t*) secret, read_pub_key);
+    if(write_header.file_length > 0) {
+        // 32bit for alignment purposes
+        uint32_t secret[8];
+        random_fill_buffer((uint8_t*) secret, sizeof(uint8_t[32]));
+        
+        // Generate x25519 vals
+        crypto_x25519_public_key(rand_pub_key, (uint8_t*) secret);
+        crypto_x25519(raw_secret, (uint8_t*) secret, read_pub_key);
 
-    crypto_blake2b((uint8_t*) secret, sizeof(secret), (uint8_t*) keys, sizeof(keys));
+        crypto_blake2b((uint8_t*) secret, sizeof(secret), (uint8_t*) keys, sizeof(keys));
 
-    // Move key into AES
-    DL_AESADV_setKeyAligned(AESADV, secret, DL_AESADV_KEY_SIZE_256_BIT);
+        // Move key into AES
+        DL_AESADV_setKeyAligned(AESADV, secret, DL_AESADV_KEY_SIZE_256_BIT);
 
-    // Wipe Secrets
-    crypto_wipe(secret, sizeof(secret));
-    crypto_wipe(keys[0], sizeof(keys[0]));
+        // Wipe Secrets
+        crypto_wipe(secret, sizeof(secret));
+        crypto_wipe(keys[0], sizeof(keys[0]));
 
-    // Copy Rand public key into metadata
-    memcpy(signed_metadata.metadata.encryption_public_key, rand_pub_key, sizeof(uint8_t[32]));
+        // Copy Rand public key into metadata
+        memcpy(signed_metadata.metadata.encryption_public_key, rand_pub_key, sizeof(uint8_t[32]));
 
-    // We don't reuse keys so 0 iv
-    uint32_t iv[4] = {};
-    DL_AESADV_Config aes_config = {
-        .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
-        .direction = DL_AESADV_DIR_ENCRYPT,
-        .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_96_BIT,
-        .iv = (uint8_t*) &iv,
-        .upperCryptoLength = 0,
-        .lowerCryptoLength = write_header.file_length + padding,
-        .aadLength = 0,
-    };
-    DL_AESADV_enableSavedOutputContext(AESADV);
-    DL_AESADV_initGCM(AESADV, &aes_config);
+        // We don't reuse keys so 0 iv
+        uint32_t iv[4] = {};
+        DL_AESADV_Config aes_config = {
+            .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
+            .direction = DL_AESADV_DIR_ENCRYPT,
+            .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_96_BIT,
+            .iv = (uint8_t*) &iv,
+            .upperCryptoLength = 0,
+            .lowerCryptoLength = write_header.file_length + padding,
+            .aadLength = 0,
+        };
+        DL_AESADV_enableSavedOutputContext(AESADV);
+        DL_AESADV_initGCM(AESADV, &aes_config);
 
-    for(size_t i = 0; i < padding; i++) {
-        file_buffer[write_header.file_length + i] = 0;
+        for(size_t i = 0; i < padding; i++) {
+            file_buffer[write_header.file_length + i] = 0;
+        }
+
+        while(!uart_ctx.transfer_complete);
+
+        // Encrypt and write file
+        uint32_t aes_blocks = (write_header.file_length + padding) / 16;
+        for(size_t i = 0; i < aes_blocks; i++) {
+            while(!DL_AESADV_isInputReady(AESADV)) {}
+            DL_AESADV_loadInputDataAligned(AESADV, (uint32_t*) &file_buffer[16 * i]);
+
+            uint32_t aes_output[4];
+
+            while(!DL_AESADV_isOutputReady(AESADV)) {}
+            DL_AESADV_readOutputDataAligned(AESADV, aes_output);
+
+            uint32_t address = (uint32_t) &(SLOTS[write_header.slot].encrypted_file[16 * i]);
+            DL_FlashCTL_unprotectSector(FLASHCTL, address, DL_FLASHCTL_REGION_SELECT_MAIN);
+            DL_FlashCTL_programMemory64WithECCGenerated(FLASHCTL, address, aes_output);
+            DL_FlashCTL_waitForCmdDone(FLASHCTL);
+
+            address += 8;
+            DL_FlashCTL_unprotectSector(FLASHCTL, address, DL_FLASHCTL_REGION_SELECT_MAIN);
+            DL_FlashCTL_programMemory64WithECCGenerated(FLASHCTL, address, aes_output + 2);
+            DL_FlashCTL_waitForCmdDone(FLASHCTL);
+        }
+
+        // Wait for TAG
+        while(!DL_AESADV_isSavedOutputContextReady(AESADV));
+        DL_AESADV_readTAGAligned(AESADV, signed_metadata.metadata.file_signature);
+    } else {
+        // ACK in 0 file_length case
+        message_header_send_ack(HOST_INST);
     }
-
-    while(!uart_ctx.transfer_complete);
-
-    // Encrypt and write file
-    uint32_t aes_blocks = (write_header.file_length + padding) / 16;
-    for(size_t i = 0; i < aes_blocks; i++) {
-        while(!DL_AESADV_isInputReady(AESADV)) {}
-        DL_AESADV_loadInputDataAligned(AESADV, (uint32_t*) &file_buffer[16 * i]);
-
-        uint32_t aes_output[4];
-
-        while(!DL_AESADV_isOutputReady(AESADV)) {}
-        DL_AESADV_readOutputDataAligned(AESADV, aes_output);
-
-        uint32_t address = (uint32_t) &(SLOTS[write_header.slot].encrypted_file[16 * i]);
-        DL_FlashCTL_unprotectSector(FLASHCTL, address, DL_FLASHCTL_REGION_SELECT_MAIN);
-        DL_FlashCTL_programMemory64WithECCGenerated(FLASHCTL, address, aes_output);
-        DL_FlashCTL_waitForCmdDone(FLASHCTL);
-
-        address += 8;
-        DL_FlashCTL_unprotectSector(FLASHCTL, address, DL_FLASHCTL_REGION_SELECT_MAIN);
-        DL_FlashCTL_programMemory64WithECCGenerated(FLASHCTL, address, aes_output + 2);
-        DL_FlashCTL_waitForCmdDone(FLASHCTL);
-    }
-
-    // Wait for TAG
-    while(!DL_AESADV_isSavedOutputContextReady(AESADV));
-    DL_AESADV_readTAGAligned(AESADV, signed_metadata.metadata.file_signature);
 
     // Sign File
     crypto_eddsa_sign(

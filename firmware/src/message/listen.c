@@ -144,7 +144,7 @@ void message_listen(message_header_t header) {
 
         if(slot > NUM_SLOTS) {
             hsm_header.operation = MESSAGE_ERROR;
-        } else if (SLOTS[slot].signed_metadata.metadata.file_size == 0 || SLOTS[slot].signed_metadata.metadata.file_size > MAX_FILE_SIZE) {
+        } else if (SLOTS[slot].signed_metadata.metadata.file_size > MAX_FILE_SIZE) {
             hsm_header.operation = MESSAGE_ERROR;
         }
 

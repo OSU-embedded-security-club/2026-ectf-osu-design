@@ -83,7 +83,7 @@ void message_read_response(message_header_t header) {
     }
 
     // Check if File Exists
-    if(file_length == 0 || file_length > MAX_FILE_SIZE) {
+    if(file_length > MAX_FILE_SIZE) {
         const char msg[] = "No File in Slot";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
@@ -112,42 +112,45 @@ void message_read_response(message_header_t header) {
         return;
     }
 
+    if(file_length > 0) {
 
-    uint32_t keys[3][8];
+        uint32_t keys[3][8];
 
-    uint8_t* secret_key = (uint8_t*) keys[0];
-    uint8_t* file_pub_key = (uint8_t*) keys[1];
-    uint8_t* read_pub_key = (uint8_t*) keys[2];
+        uint8_t* secret_key = (uint8_t*) keys[0];
+        uint8_t* file_pub_key = (uint8_t*) keys[1];
+        uint8_t* read_pub_key = (uint8_t*) keys[2];
 
-    memcpy(file_pub_key, file->signed_metadata.metadata.encryption_public_key, sizeof(uint8_t[32]));
-    memcpy(read_pub_key, group->public.read_key, sizeof(uint8_t[32]));
+        memcpy(file_pub_key, file->signed_metadata.metadata.encryption_public_key, sizeof(uint8_t[32]));
+        memcpy(read_pub_key, group->public.read_key, sizeof(uint8_t[32]));
 
-    uint32_t aes_key[8];
-    crypto_x25519(secret_key, group->private.read_key, file_pub_key);
-    crypto_blake2b((uint8_t*) aes_key, sizeof(aes_key), (uint8_t*) keys, sizeof(keys));
+        uint32_t aes_key[8];
+        crypto_x25519(secret_key, group->private.read_key, file_pub_key);
+        crypto_blake2b((uint8_t*) aes_key, sizeof(aes_key), (uint8_t*) keys, sizeof(keys));
 
-    DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_256_BIT);
-    DL_AESADV_setKeyAligned(AESADV, aes_key, DL_AESADV_KEY_SIZE_256_BIT);
+        DL_AESADV_setKeySize(AESADV, DL_AESADV_KEY_SIZE_256_BIT);
+        DL_AESADV_setKeyAligned(AESADV, aes_key, DL_AESADV_KEY_SIZE_256_BIT);
 
-    // Wipe Secrets
-    crypto_wipe(aes_key, sizeof(aes_key));
-    crypto_wipe(secret_key, sizeof(uint8_t[32]));
+        // Wipe Secrets
+        crypto_wipe(aes_key, sizeof(aes_key));
+        crypto_wipe(secret_key, sizeof(uint8_t[32]));
 
 
-    // Initalize AES
-    // We don't reuse keys so 0 iv
-    uint32_t iv[4] = {};
-    DL_AESADV_Config aes_config = {
-        .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
-        .direction = DL_AESADV_DIR_DECRYPT,
-        .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_96_BIT,
-        .iv = (uint8_t*) &iv,
-        .upperCryptoLength = 0,
-        .lowerCryptoLength = padded_length,
-        .aadLength = 0,
-    };
-    DL_AESADV_enableSavedOutputContext(AESADV);
-    DL_AESADV_initGCM(AESADV, &aes_config);
+        // Initalize AES
+        // We don't reuse keys so 0 iv
+        uint32_t iv[4] = {};
+        DL_AESADV_Config aes_config = {
+            .mode = DL_AESADV_MODE_GCM_AUTONOMOUS,
+            .direction = DL_AESADV_DIR_DECRYPT,
+            .ctr_ctrWidth = DL_AESADV_CTR_WIDTH_96_BIT,
+            .iv = (uint8_t*) &iv,
+            .upperCryptoLength = 0,
+            .lowerCryptoLength = padded_length,
+            .aadLength = 0,
+        };
+        DL_AESADV_enableSavedOutputContext(AESADV);
+        DL_AESADV_initGCM(AESADV, &aes_config);
+
+    }
 
     // Send Resposne Header
     header.message_length = sizeof(file->signed_metadata.metadata.name) + file_length;
@@ -161,49 +164,22 @@ void message_read_response(message_header_t header) {
         DL_UART_transmitDataBlocking(HOST_INST, file->signed_metadata.metadata.name[i]);
     }
 
-    size_t bytes_read = 0;
+    if(file_length > 0) {
+        size_t bytes_read = 0;
 
-    // Calculate First transfer size
-    uint16_t first_chunk_size = CHUNK_SIZE - READ_HEADER_LENGTH;
-    if(padded_length < first_chunk_size) {
-        aes_buffer->length = padded_length;
-    } else {
-        aes_buffer->length = first_chunk_size;
-    }
-
-    bytes_read += aes_buffer->length;
-
-    uint32_t* encrypted_data = (uint32_t*) file->encrypted_file;
-
-    uint32_t* buffer_ptr = aes_buffer->buffer;
-    for(int i = 0; i < aes_buffer->length; i += 16) {
-        while(!DL_AESADV_isInputReady(AESADV));
-        DL_AESADV_loadInputDataAligned(AESADV, encrypted_data);
-        while(!DL_AESADV_isOutputReady(AESADV));
-        DL_AESADV_readOutputDataAligned(AESADV, buffer_ptr);
-
-        buffer_ptr += 4;
-        encrypted_data += 4;
-    }
-
-    aes_buffer = aes_buffer->next;
-    uart_buffer = uart_buffer->next;
-
-    while(bytes_read < padded_length) {
-        uint16_t bytes_remaining = padded_length - bytes_read;
-        if(bytes_remaining < CHUNK_SIZE) {
-            aes_buffer->length = bytes_remaining;
+        // Calculate First transfer size
+        uint16_t first_chunk_size = CHUNK_SIZE - READ_HEADER_LENGTH;
+        if(padded_length < first_chunk_size) {
+            aes_buffer->length = padded_length;
         } else {
-            aes_buffer->length = CHUNK_SIZE;
+            aes_buffer->length = first_chunk_size;
         }
+
         bytes_read += aes_buffer->length;
 
-        DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
-        DL_DMA_setTransferSize(DMA, DMA_CHANNEL, uart_buffer->length);
+        uint32_t* encrypted_data = (uint32_t*) file->encrypted_file;
 
-        DL_DMA_enableChannel(DMA, DMA_CHANNEL);
-
-        buffer_ptr = aes_buffer->buffer;
+        uint32_t* buffer_ptr = aes_buffer->buffer;
         for(int i = 0; i < aes_buffer->length; i += 16) {
             while(!DL_AESADV_isInputReady(AESADV));
             DL_AESADV_loadInputDataAligned(AESADV, encrypted_data);
@@ -214,36 +190,65 @@ void message_read_response(message_header_t header) {
             encrypted_data += 4;
         }
 
-        // Wait for transfer
-        while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
-
-        message_header_receive_ack(HOST_INST);
-
         aes_buffer = aes_buffer->next;
         uart_buffer = uart_buffer->next;
+
+        while(bytes_read < padded_length) {
+            uint16_t bytes_remaining = padded_length - bytes_read;
+            if(bytes_remaining < CHUNK_SIZE) {
+                aes_buffer->length = bytes_remaining;
+            } else {
+                aes_buffer->length = CHUNK_SIZE;
+            }
+            bytes_read += aes_buffer->length;
+
+            DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
+            DL_DMA_setTransferSize(DMA, DMA_CHANNEL, uart_buffer->length);
+
+            DL_DMA_enableChannel(DMA, DMA_CHANNEL);
+
+            buffer_ptr = aes_buffer->buffer;
+            for(int i = 0; i < aes_buffer->length; i += 16) {
+                while(!DL_AESADV_isInputReady(AESADV));
+                DL_AESADV_loadInputDataAligned(AESADV, encrypted_data);
+                while(!DL_AESADV_isOutputReady(AESADV));
+                DL_AESADV_readOutputDataAligned(AESADV, buffer_ptr);
+
+                buffer_ptr += 4;
+                encrypted_data += 4;
+            }
+
+            // Wait for transfer
+            while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
+
+            message_header_receive_ack(HOST_INST);
+
+            aes_buffer = aes_buffer->next;
+            uart_buffer = uart_buffer->next;
+        }
+
+        // Check GCM Tag
+        uint32_t gcm_tag[4];
+        DL_AESADV_readTAGAligned(AESADV, gcm_tag);
+        int verify = crypto_verify16((uint8_t*) gcm_tag, (uint8_t*) file->signed_metadata.metadata.file_signature);
+
+        utils_random_delay();
+
+        if(verify == -1) {
+            const char msg[] = "File is Corrupted";
+            message_header_send_error(HOST_INST, msg, sizeof(msg));
+            return;
+        }
+        
+
+        uint16_t padding = padded_length - file_length;
+        DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
+        DL_DMA_setTransferSize(DMA, DMA_CHANNEL, ((uart_buffer->length) - padding));
+
+        delay_cycles(DMA_CHANNEL);
+        DL_DMA_enableChannel(DMA, DMA_CHANNEL);
+        while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
     }
-
-    // Check GCM Tag
-    uint32_t gcm_tag[4];
-    DL_AESADV_readTAGAligned(AESADV, gcm_tag);
-    int verify = crypto_verify16((uint8_t*) gcm_tag, (uint8_t*) file->signed_metadata.metadata.file_signature);
-
-    utils_random_delay();
-
-    if(verify == -1) {
-        const char msg[] = "File is Corrupted";
-        message_header_send_error(HOST_INST, msg, sizeof(msg));
-        return;
-    }
-    
-
-    uint16_t padding = padded_length - file_length;
-    DL_DMA_setSrcAddr(DMA, DMA_CHANNEL, (uint32_t) uart_buffer->buffer);
-    DL_DMA_setTransferSize(DMA, DMA_CHANNEL, ((uart_buffer->length) - padding));
-
-    delay_cycles(DMA_CHANNEL);
-    DL_DMA_enableChannel(DMA, DMA_CHANNEL);
-    while(DL_DMA_isChannelEnabled(DMA, DMA_CHANNEL));
 
     message_header_receive_ack(HOST_INST);
 

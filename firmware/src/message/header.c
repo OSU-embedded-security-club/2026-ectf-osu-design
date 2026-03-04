@@ -70,10 +70,10 @@ void message_header_receive_ack(UART_Regs* uart) {
     message_header_t req;
     int result = message_header_request(uart, &req);
 
-    if(result != 0 && req.operation != MESSAGE_ACK) {
-        const char msg[] = "Malformed ACK";
-        message_header_send_debug(uart, msg, sizeof(msg));
-    }
+    // if(result != 0 && req.operation != MESSAGE_ACK) {
+    //     const char msg[] = "Malformed ACK";
+    //     message_header_send_debug(uart, msg, sizeof(msg));
+    // }
 
     // if(req.message_length != 0) {
     //     const char msg[] = "ACK Length Error";
