@@ -84,7 +84,10 @@ typedef struct __attribute__((aligned(FLASH_WORD_SIZE))) {
 //! command. ACK_LENGTH - WRITE_HEADER_SIZE bytes will be waiting to
 //! be encrypted until more data is recieved which brings the buffers
 //! out of alignment.
+//! Padding required at front of file to align with AES block boundary
 #define FILE_PADDING_FRONT (16 - ((256 - WRITE_HEADER_SIZE) % 16))
+
+//! Maximum padding required at back of file to align with AES block boundary
 #define MAX_PADDING_BACK (16 - (FILE_PADDING_FRONT + MAX_FILE_SIZE) % 16)
 
 /*!
@@ -111,5 +114,20 @@ typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))) {
 extern file_address_table_t FILE_ADDRESS_TABLE;
 extern file_slot_entry_t SLOTS[NUM_SLOTS];
 
+/*!
+ * @brief Reads the FAT table from flash
+ * 
+ * @param[out] fat Pointer to FAT table structure to populate
+ * 
+ * @returns 0 on success, negative value on error
+ */
 int file_read_fat(file_address_table_t* fat);
+
+/*!
+ * @brief Writes the FAT table to flash
+ * 
+ * @param[in] fat Pointer to FAT table structure to write
+ * 
+ * @returns 0 on success, negative value on error
+ */
 int file_write_fat(file_address_table_t* fat);

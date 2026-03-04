@@ -7,51 +7,60 @@
 
 #include "ti_msp_dl_config.h"
 
-/**
- * @brief Parses and Verifies Host Pin
+/*!
+ * @brief Delay between 0 - 4096 cycles to mitigate timing attacks
+ */
+void utils_random_delay();
+
+/*!
+ * @brief Verifies host PIN
  * 
- * @return true     Host provided a valid pin
- * @return false    Host provided an invalid pin
+ * @param[in] pin PIN buffer
+ * @param[in] pin_length Length of PIN
+ * 
+ * @returns true if PIN is valid, false otherwise
  */
 bool utils_verify_pin(uint8_t* pin, size_t pin_length);
 
-
-/**
- * @brief Sends a Buffer over UART with ACKing
+/*!
+ * @brief Sends buffer over UART with ACKing
  * 
- * @param uart      UART to send Buffer Over
- * @param buffer    Buffer Pointer
- * @param length    Buffer Length
+ * @param[in] uart UART peripheral
+ * @param[in] buffer Buffer to send
+ * @param[in] length Buffer length
+ * @param[in] bytes_sent Number of bytes already sent (for resumption)
  */
 void utils_send_buffer(UART_Regs * uart, const void* buffer, size_t length, size_t bytes_sent);
 
-/**
- * @brief Sends a Buffer over UART without ACKing
+/*!
+ * @brief Sends buffer over UART without ACKing
  * 
- * @param uart      UART to send Buffer Over
- * @param buffer    Buffer Pointer
- * @param length    Buffer Length
+ * @param[in] uart UART peripheral
+ * @param[in] buffer Buffer to send
+ * @param[in] length Buffer length
  */
 void utils_send_buffer_no_ack(UART_Regs* uart, const void* buffer, size_t length);
 
-/**
- * @brief Receives a specified number of bytes from the UART
- *
- * Blocks until `num_bytes` have been read from the provided `uart`
- * and stored into `buffer`.
- *
- * @param uart      UART peripheral to read from
- * @param buffer    Destination buffer where received bytes will be written
- * @param num_bytes Number of bytes to receive
+/*!
+ * @brief Receives specified number of bytes from UART
+ * 
+ * Blocks until num_bytes have been read from the provided uart
+ * and stored into buffer.
+ * 
+ * @param[in] uart UART peripheral
+ * @param[out] buffer Destination buffer
+ * @param[in] num_bytes Number of bytes to receive
  */
 void utils_receive_bytes(UART_Regs* uart, void* buffer, size_t num_bytes);
 
-const group_t* utils_find_group(uint16_t group_id);
-
-/**
- * @brief Delay between 0 - 4096 Cycles
+/*!
+ * @brief Finds group by ID
+ * 
+ * @param[in] group_id Group identifier to search for
+ * 
+ * @returns Pointer to group if found, NULL otherwise
  */
-void utils_random_delay();
+const group_t* utils_find_group(uint16_t group_id);
 
 
 // #ifdef DEBUG
