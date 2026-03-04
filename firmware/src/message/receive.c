@@ -8,7 +8,7 @@
 #include <monocypher.h>
 
 void message_recieve(message_header_t header) {
-    // DL_AESADV_enablePower(AESADV);
+    DL_AESADV_enablePower(AESADV);
 
     message_header_send_ack(HOST_INST);
 
@@ -168,5 +168,5 @@ void message_recieve(message_header_t header) {
     message_header_response(HOST_INST, header);
     message_header_receive_ack(HOST_INST);
 
-    // DL_AESADV_disablePower(AESADV);
+    DL_AESADV_disablePower(AESADV);
 }

@@ -14,8 +14,7 @@ BufferNode buffers[2];
 #define READ_HEADER_LENGTH 32
 
 void message_read_response(message_header_t header) {
-    // DL_AESADV_enablePower(AESADV);
-    // DL_AESADV_reset(AESADV);
+    DL_AESADV_enablePower(AESADV);
 
     // Init Buffers
     BufferNode* aes_buffer = &buffers[0];
@@ -249,5 +248,5 @@ void message_read_response(message_header_t header) {
     message_header_receive_ack(HOST_INST);
 
     DL_UART_disableDMATransmitEvent(HOST_INST);
-    // DL_AESADV_disablePower(AESADV);
+    DL_AESADV_disablePower(AESADV);
 }

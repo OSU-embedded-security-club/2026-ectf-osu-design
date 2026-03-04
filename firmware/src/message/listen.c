@@ -16,7 +16,7 @@
  * @param header 
  */
 void message_listen(message_header_t header) {
-    // DL_AESADV_enablePower(AESADV);
+    DL_AESADV_enablePower(AESADV);
 
     message_header_send_ack(HOST_INST);
 
@@ -244,10 +244,11 @@ void message_listen(message_header_t header) {
         message_header_receive_ack(HSM_INST);
     }
 
+    DL_AESADV_disablePower(AESADV);
+
     // Send Response to Host
     header.message_length = 0;
     message_header_response(HOST_INST, header);
     message_header_receive_ack(HOST_INST);
 
-    // DL_AESADV_disablePower(AESADV);
 }

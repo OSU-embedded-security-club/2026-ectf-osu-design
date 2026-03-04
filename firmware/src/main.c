@@ -16,6 +16,7 @@
 //! Program Entrypoint
 int main(void) {
     
+    // Reset UART
     DL_UART_reset(HOST_INST);
     DL_UART_reset(HSM_INST);
     
