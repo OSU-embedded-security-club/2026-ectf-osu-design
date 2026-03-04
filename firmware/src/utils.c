@@ -55,5 +55,5 @@ void utils_random_delay() {
     
     // Num Between 0 - 4096
     random_num = random_num >> 4;
-    // delay_cycles(random_num);
+    delay_cycles(random_num);
 }
