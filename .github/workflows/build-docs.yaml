@@ -16,7 +16,7 @@ permissions:
     
 concurrency:
   group: "pages"
-  canel-in-progress: false
+  cancel-in-progress: false
 
 jobs:
   build:
