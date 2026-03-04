@@ -160,9 +160,14 @@ if(Doxygen_FOUND)
 
     set(DOXYGEN_EXTRACT_ALL YES)
 
+    # Remove __attribute__ from doxygen parsing
+    set(DOXYGEN_ENABLE_PREPROCESSING YES)
+    set(DOXYGEN_MACRO_EXPANSION YES)
+    set(DOXYGEN_PREDEFINED "__attribute__(x)=")
+
     doxygen_add_docs(docs # Target
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/docs
+        ${CMAKE_SOURCE_DIR}/../docs
     )
 endif()
