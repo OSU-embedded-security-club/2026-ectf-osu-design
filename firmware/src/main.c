@@ -34,10 +34,9 @@ int main(void) {
     NVIC_EnableIRQ(HOST_INST_INT_IRQN);
     NVIC_EnableIRQ(DMA_INT_IRQn);
 
-    DL_WWDT_disablePower(WWDT0);
-
     while(1) {
-        // DL_WWDT_reset(WWDT0);
+        // 5 Second Watchdog
+        DL_WWDT_restart(WWDT0);
 
         // Poll UART
         if(!DL_UART_isRXFIFOEmpty(HOST_INST)) {

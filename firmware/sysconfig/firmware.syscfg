@@ -65,10 +65,11 @@ UART2.rxPinConfig.hideOutputInversion  = scripting.forceWrite(false);
 UART2.rxPinConfig.onlyInternalResistor = scripting.forceWrite(false);
 UART2.rxPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
 
-WWDT1.$name        = "WWDT0";
-WWDT1.clockDivider = "1";
-WWDT1.periodCount  = "18";
-WWDT1.sleepMode    = true;
+WWDT1.$name             = "WWDT0";
+WWDT1.periodCount       = "15";
+WWDT1.clockDivider      = "5";
+WWDT1.interruptPriority = "0";
+WWDT1.sleepMode         = true;
 
 ProjectConfig.genStartup = false;
 ProjectConfig.genOpts    = false;

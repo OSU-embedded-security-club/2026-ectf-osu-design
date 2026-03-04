@@ -201,16 +201,16 @@ SYSCONFIG_WEAK void SYSCFG_DL_WWDT0_init(void)
     /*
      * Initialize WWDT0 in Watchdog mode with following settings
      *   Watchdog Source Clock = (LFCLK Freq) / (WWDT Clock Divider)
-     *                         = 32768Hz / 1 = 32.77 kHz
+     *                         = 32768Hz / 5 = 6.55 kHz
      *   Watchdog Period       = (WWDT Clock Divider) ∗ (WWDT Period Count) / 32768Hz
-     *                         = 1 * 2^18 / 32768Hz = 8.00 s
+     *                         = 5 * 2^15 / 32768Hz = 5.00 s
      *   Window0 Closed Period = (WWDT Period) * (Window0 Closed Percent)
-     *                         = 8.00 s * 0% = 0.00 s
+     *                         = 5.00 s * 0% = 0.00 s
      *   Window1 Closed Period = (WWDT Period) * (Window1 Closed Percent)
-     *                         = 8.00 s * 0% = 0.00 s
+     *                         = 5.00 s * 0% = 0.00 s
      */
-    DL_WWDT_initWatchdogMode(WWDT0_INST, DL_WWDT_CLOCK_DIVIDE_1,
-        DL_WWDT_TIMER_PERIOD_18_BITS, DL_WWDT_RUN_IN_SLEEP,
+    DL_WWDT_initWatchdogMode(WWDT0_INST, DL_WWDT_CLOCK_DIVIDE_5,
+        DL_WWDT_TIMER_PERIOD_15_BITS, DL_WWDT_RUN_IN_SLEEP,
         DL_WWDT_WINDOW_PERIOD_0, DL_WWDT_WINDOW_PERIOD_0);
 
     /* Set Window0 as active window */
