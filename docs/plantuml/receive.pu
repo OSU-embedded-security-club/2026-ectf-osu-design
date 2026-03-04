@@ -1,0 +1,21 @@
+@startuml
+actor User as u1
+participant HSM1 as h1
+participant HSM2 as h2
+actor User2 as u2
+
+u1 -> h1 : Listen Command
+u2 -> h2 : Recieve Command
+h2 -> h1 : Recieve Command
+h1 -> h2 : ACK
+h2 -> h1 : Read Slot
+h1 -> h2 : ACK
+h1 -> h2 : Receive Command
+h1 -> h2 : File Group ID
+h1 -> h2 : ED25519 Public Key
+h2 -> h1 : ACK
+h1 -> h2 : AES IV
+h1 -> h2 : Encrypted file_slot_entry_t
+h1 -> h2 : AES-GCM Tag
+h2 -> h1 : ACK
+@enduml
