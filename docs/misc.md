@@ -4,7 +4,7 @@ This page details some of the implementation specifics that didn't really fit in
 
 ## Stalls
 
-In our design we have configured the WWDT for 5 seconds. The timer is only reset in the main event loop so if a function gets stuck at any point the watchdog will expire and trigger a reset. This makes any issues with incomplete messages or other errors recoverable.
+In our design we have configured the WWDT for 4 seconds. The timer is only reset in the main event loop so if a function gets stuck at any point the watchdog will expire and trigger a reset. This makes any issues with incomplete messages or other errors recoverable.
 
 ## UART Errors
 

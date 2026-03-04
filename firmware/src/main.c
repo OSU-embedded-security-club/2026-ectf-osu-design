@@ -35,7 +35,7 @@ int main(void) {
     NVIC_EnableIRQ(DMA_INT_IRQn);
 
     while(1) {
-        // 5 Second Watchdog
+        // 4 Second Watchdog
         DL_WWDT_restart(WWDT0);
 
         // Poll UART

@@ -67,7 +67,6 @@ UART2.rxPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
 
 WWDT1.$name             = "WWDT0";
 WWDT1.periodCount       = "15";
-WWDT1.clockDivider      = "5";
 WWDT1.interruptPriority = "0";
 WWDT1.sleepMode         = true;
 
