@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo dnf install -y wget curl git cmake clangd clang-tools-extra uv doxygen python3-jinja2
+sudo dnf install -y wget curl git cmake clangd clang-tools-extra uv doxygen python3-jinja2 plantuml
 
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh
 
