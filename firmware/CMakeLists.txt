@@ -146,7 +146,7 @@ if(Doxygen_FOUND)
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/../docs/index.md)
 
     set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml.jar)
-    set(DOXYGEN_PLANTUMLFILE_DIRS ${CMAKE_SOURCE_DIR}/docs/plantuml)
+    set(DOXYGEN_PLANTUMLFILE_DIRS ${CMAKE_SOURCE_DIR}/../docs/plantuml)
 
     set(DOXYGEN_DOTFILE_DIRS ${CMAKE_SOURCE_DIR}/../docs/dotfiles)
     set(DOXYGEN_DOT_IMAGE_FORMAT svg)
