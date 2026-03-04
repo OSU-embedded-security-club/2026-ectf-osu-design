@@ -21,7 +21,7 @@ typedef struct {
     //! Flag indicating transfer has stopped
     bool stopped;
 
-    //! Offset of first chunk in buffer
+    //! Offset of first chunk in buffer (for ACKing)
     size_t first_chunk_offset;
 
     //! Number of bytes transferred so far
@@ -38,7 +38,19 @@ typedef struct {
  * @brief Starts asynchronous UART receive operation
  * 
  * @param[in,out] ctx Pointer to async UART context
- * 
+ *
+ * @if **ctx->transfer_complete** == true
+ *   **ctx->buffer** is filled with **ctx->total_bytes** bytes from **ctx->uart**
+ * @endif
+ *
+ * @if **ctx->stop** == true
+ *   The UART DMA operation will be halted at the next ACK
+ * @endif
+ *
+ * @if **ctx->stopped** == true
+ *   The UART DMA operation is halted
+ * @endif
+ *
  * @returns 0 on success, negative value on error
  */
 int async_uart_receive(async_uart_ctx* ctx);

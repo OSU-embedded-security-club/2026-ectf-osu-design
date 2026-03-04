@@ -1,14 +1,9 @@
 #include "random.h"
 
 /**
- * @brief Fills a buffer with random bytes using the TRNG hardware.
- * 
  * This function generates random bytes by repeatedly sampling the True Random Number
  * Generator (TRNG) hardware module and converting the 32-bit outputs into individual
  * bytes. The function blocks until the entire output buffer is filled.
- * 
- * @param[out] buffer Pointer to the output buffer to be filled with random bytes.
- * @param[in] length Length of the buffer.
  */
 void random_fill_buffer(uint8_t *buffer, size_t length) {
 

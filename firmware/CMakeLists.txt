@@ -139,8 +139,8 @@ if(Doxygen_FOUND)
     )
 
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
-        docs/doxygen-awesome-css/doxygen-awesome.css
-        docs/doxygen-awesome-css/doxygen-awesome-sidebar-only.css
+        ${CMAKE_SOURCE_DIR}/../docs/doxygen-awesome-css/doxygen-awesome.css
+        ${CMAKE_SOURCE_DIR}/../docs/doxygen-awesome-css/doxygen-awesome-sidebar-only.css
     )
 
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_SOURCE_DIR}/../docs/index.md)
@@ -164,6 +164,11 @@ if(Doxygen_FOUND)
     set(DOXYGEN_ENABLE_PREPROCESSING YES)
     set(DOXYGEN_MACRO_EXPANSION YES)
     set(DOXYGEN_PREDEFINED "__attribute__(x)=")
+
+    # Generate Latex
+    set(DOXYGEN_GENERATE_LATEX YES)
+    set(DOXYGEN_PDF_HYPERLINKS YES)
+    set(DOXYGEN_USE_PDFLATEX YES)
 
     doxygen_add_docs(docs # Target
         ${CMAKE_SOURCE_DIR}/include

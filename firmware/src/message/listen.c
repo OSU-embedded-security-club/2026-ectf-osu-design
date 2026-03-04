@@ -11,9 +11,12 @@
 #define DMA_CHANNEL 0
 
 /**
- * @brief Handles Listen Command
- * 
- * @param header 
+ * The listen is other end of the [recieve command](@ref message_recieve)
+ * and the [interrogate command](@ref message_interrogate). The listen command
+ * starts by recieving a header from the remote HSM and then based on the header
+ * opcode the listen command provides a response in accordance to the
+ * [recieve command definition](@ref message_recieve) or the
+ * [interrogate command definition](@ref message_interrogate).
  */
 void message_listen(message_header_t header) {
     DL_AESADV_enablePower(AESADV);

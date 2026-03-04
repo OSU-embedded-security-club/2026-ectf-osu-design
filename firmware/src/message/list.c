@@ -5,6 +5,12 @@
 
 #include <string.h>
 
+/**
+ * List is fairly simple in function. We simply iterrate over
+ * the file system checking if the length of each structure is in
+ * less than the max file size and if it is less than the max file
+ * size we know a file exists in that slot.
+ */
 void message_list_response(message_header_t header) {
 
     message_header_send_ack(HOST_INST);

@@ -79,16 +79,8 @@ typedef struct __attribute__((aligned(FLASH_WORD_SIZE))) {
     uint8_t writer_signature[64];
 } file_metadata_signed_t;
 
-//! Since the header is included as part of the 256 byte
-//! ACK the ACKs won't line up with AES block size for the write
-//! command. ACK_LENGTH - WRITE_HEADER_SIZE bytes will be waiting to
-//! be encrypted until more data is recieved which brings the buffers
-//! out of alignment.
-//! Padding required at front of file to align with AES block boundary
-#define FILE_PADDING_FRONT (16 - ((256 - WRITE_HEADER_SIZE) % 16))
-
 //! Maximum padding required at back of file to align with AES block boundary
-#define MAX_PADDING_BACK (16 - (FILE_PADDING_FRONT + MAX_FILE_SIZE) % 16)
+#define MAX_PADDING_BACK (16 - MAX_FILE_SIZE % 16)
 
 /*!
  * @brief Structure of data in each "slot" of memory.
@@ -108,7 +100,7 @@ typedef struct __attribute__((aligned(FLASH_SECTOR_SIZE))) {
     file_metadata_signed_t signed_metadata __attribute__((aligned(FLASH_WORD_SIZE)));
 
     //! Encrypted File with Padding using AES-GCM
-    uint8_t encrypted_file[FILE_PADDING_FRONT + MAX_FILE_SIZE + MAX_PADDING_BACK] __attribute__((aligned(FLASH_WORD_SIZE)));
+    uint8_t encrypted_file[MAX_FILE_SIZE + MAX_PADDING_BACK] __attribute__((aligned(FLASH_WORD_SIZE)));
 } file_slot_entry_t;
 
 extern file_address_table_t FILE_ADDRESS_TABLE;

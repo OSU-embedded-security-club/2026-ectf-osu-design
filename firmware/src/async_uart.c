@@ -5,6 +5,13 @@
 
 async_uart_ctx* transfers[16];
 
+/**
+ * This function fills the buffer passed in the
+ * ctx struct with bytes from the UART. We utilize
+ * the DMA interrupt to ACK every 256 bytes to allow
+ * other operations to be performed concurrently with
+ * IO.
+ */
 int async_uart_receive(async_uart_ctx* ctx) {
     transfers[ctx->dma_channel] = ctx;
     ctx->transfer_complete = false;

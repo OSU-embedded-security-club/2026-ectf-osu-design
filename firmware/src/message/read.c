@@ -13,6 +13,16 @@ BufferNode buffers[2];
 
 #define READ_HEADER_LENGTH 32
 
+/**
+ * The read command is a fairly simple command to process.
+ * We start by verifing that the metadata of the file is valid
+ * by verifing the signature that is stored alongside the metadata.
+ * After verifing the signature we generate the decryption AES secret
+ * using the read private key that the board should be provissioned with
+ * if it has valid permissions and the public key stored inside the signed
+ * metadata. The file is then decrypted in chunks and transfered over UART
+ * with the last chunk only being sent if the GCM tag is valid.
+*/
 void message_read_response(message_header_t header) {
     DL_AESADV_enablePower(AESADV);
 

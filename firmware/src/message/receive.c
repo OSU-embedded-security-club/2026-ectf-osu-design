@@ -7,6 +7,19 @@
 #include <string.h>
 #include <monocypher.h>
 
+/**
+ * Our recieve design uses asymetric encryption to ensure secrecy.
+ * Instead of trying to verify that an HSM can is allowed to decrypt
+ * a file we designed our system where we encrypt the file so it can only
+ * be decrypted by an HSM that has the private transfer key for the file group.
+ * We accomplish this by generating the AES secret key from a randomly generated
+ * ED25519 keypair and the public transfer key that every HSM is provisioned with.
+ * We then send the public key from the generated keypair to the recieving HSM so
+ * that the secret can be regenerated with the private transfer key. We transfer the
+ * entire file_slot_entry_t as it is one less point of failure in our design.
+ *
+ * @plantumlfile recieve.pu
+*/
 void message_recieve(message_header_t header) {
     DL_AESADV_enablePower(AESADV);
 

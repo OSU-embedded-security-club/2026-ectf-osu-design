@@ -6,7 +6,12 @@
 // __attribute__((persistent, location(0x3A000))) file_address_table_t FILE_ADDRESS_TABLE = {};
 // __attribute__((persistent, location(0x20000))) file_slot_entry_t SLOTS[NUM_SLOTS] = {};
 
+//! Struct representing the File Address Table on Flash.
+//! @note This struct is only writable using the FlashCTL.
 __attribute__((section(".fat"))) file_address_table_t FILE_ADDRESS_TABLE;
+
+//! Struct representing the File System on Flash.
+//! @note This struct is only writable using the FlashCTL.
 __attribute__((section(".file_store"))) file_slot_entry_t SLOTS[NUM_SLOTS];
 
 
@@ -17,6 +22,7 @@ int file_read_fat(file_address_table_t* fat) {
         }
         return 0;
 }
+
 int file_write_fat(file_address_table_t* fat) {
     // Erase FAT in Flash
     for(int i = 0; i < sizeof(FILE_ADDRESS_TABLE) / FLASH_SECTOR_SIZE; i++) {
@@ -35,8 +41,6 @@ int file_write_fat(file_address_table_t* fat) {
         DL_FlashCTL_programMemory64WithECCGenerated(FLASHCTL, address, data);
 
         DL_FlashCTL_waitForCmdDone(FLASHCTL);
-
-        // TODO: Check for Flash Errors
     }
 
     return 0;

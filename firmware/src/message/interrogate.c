@@ -9,6 +9,16 @@
 
 #include <monocypher.h>
 
+/**
+ * Initally our plan for interrogate was to sign an ED25519
+ * public key using a secret transfer key but that was not feasible
+ * given the time constraints. Since we couldn't use asymetric encryption
+ * for this task we fell back to using a simple static AES key. In theory
+ * you could still use signatures for verification but at the end of the day
+ * it would have little impact on security.
+ *
+ * @plantumlfile interrogate.pu
+ */
 void message_interrogate(message_header_t header) {
     DL_AESADV_enablePower(AESADV);
 

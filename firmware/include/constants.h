@@ -3,7 +3,6 @@
 #include "ti_msp_dl_config.h"
 
 //! Maximum file size in bytes
-//! @warning The file size must be divisible by 128 bits for encryption purposes.
 #define MAX_FILE_SIZE 8192
 
 //! Maximum number of groups supported
