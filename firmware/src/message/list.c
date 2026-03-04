@@ -22,7 +22,7 @@ void message_list_response(message_header_t header) {
         const char msg[] = "Invalid PIN";
     
         delay_cycles(PIN_DELAY);
-        // message_header_send_error(HOST_INST, msg, sizeof(msg));
+        message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
     }
 
