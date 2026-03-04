@@ -29,8 +29,9 @@ jobs:
       uses: devcontainers/ci@v0.3
       with:
         runCmd: |
-          cmake -B build
+          mkdir build
           cd build
+          cmake ../firmware
           make docs
           
     - name: Setup Pages
