@@ -69,7 +69,7 @@ void message_read_response(message_header_t header) {
     const file_slot_entry_t* file = &SLOTS[slot_number];
     const group_t* group = utils_find_group(file->signed_metadata.metadata.group_id);
 
-    if(group == 0) {
+    if(group == 0 || !group->private.permissions.read) {
         const char msg[] = "HSM not provisioned for file group";
         message_header_send_error(HOST_INST, msg, sizeof(msg));
         return;
